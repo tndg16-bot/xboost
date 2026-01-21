@@ -1,0 +1,28 @@
+export const colors = {
+  white: '#FFFFFF',
+  'gray-50': '#F9FAFB',
+  'gray-100': '#F3F4F6',
+  'gray-200': '#E5E7EB',
+  'gray-300': '#D1D5DB',
+  'gray-400': '#9CA3AF',
+  'gray-500': '#6B7280',
+  'gray-600': '#4B5563',
+  'gray-700': '#374151',
+  'gray-800': '#1F2937',
+  'gray-900': '#111827',
+  'blue-400': '#38BDF8',
+  'blue-500': '#1DA1F2',
+  'blue-600': '#0284C7',
+  'blue-700': '#0369A1',
+  'blue-900': '#0C4A6E',
+  'green-400': '#4ADE80',
+  'green-500': '#17BF63',
+  'green-600': '#16A34A',
+  'green-700': '#15803D',
+  'red-500': '#EF4444',
+  'red-600': '#DC2626',
+  'yellow-500': '#F59E0B',
+  'yellow-600': '#D97706',
+} as const;
+
+export type ColorToken = typeof colors;
