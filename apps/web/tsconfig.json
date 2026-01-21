@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@xboost/ui": ["../../packages/ui"],
+      "@xboost/*": ["../../packages/*"]
     }
   },
   "include": [
