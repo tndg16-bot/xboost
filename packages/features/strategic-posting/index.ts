@@ -1,0 +1,1 @@
+export { StrategicPosting } from './StrategicPosting';
