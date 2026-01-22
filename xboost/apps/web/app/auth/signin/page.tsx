@@ -14,9 +14,26 @@ export default function SignInPage() {
           <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
             Xboostにログイン
           </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
+          <p className="mb-4 text-zinc-600 dark:text-zinc-400">
             X（Twitter）アカウントでログインしてください
           </p>
+          <div className="rounded-lg bg-zinc-100 p-4 dark:bg-zinc-700">
+            <div className="flex items-start gap-2">
+              <svg className="mt-0.5 h-5 w-5 shrink-0 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="text-left text-sm">
+                <p className="font-medium text-zinc-900 dark:text-zinc-50">
+                  初回は2回認証が必要です
+                </p>
+                <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+                  1回目：アカウントの連携
+                  <br />
+                  2回目：投稿許可の取得
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <button
