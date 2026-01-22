@@ -1,6 +1,6 @@
 'use client';
 
-import { InspoDashboard } from '../../../../packages/features/topic-proposal';
+import { InspoDashboard } from '@xboost/topic-proposal';
 
 export default function InspoPage() {
   const handleAddToDraft = (content: string) => {

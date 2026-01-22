@@ -20,9 +20,10 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@xboost/ui": ["../../packages/ui"],
-      "@xboost/*": ["../../packages/*"]
-    }
+      "@xboost/ui": ["../packages/ui"],
+      "@xboost/*": ["../packages/features/*"]
+    },
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",

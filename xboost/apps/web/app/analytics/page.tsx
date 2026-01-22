@@ -1,6 +1,6 @@
 'use client';
 
-import { AnalyticsDashboard } from '../../../../packages/features/analytics';
+import { AnalyticsDashboard } from '@xboost/analytics';
 
 export default function AnalyticsPage() {
   return <AnalyticsDashboard />;

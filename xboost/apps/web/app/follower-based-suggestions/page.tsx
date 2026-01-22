@@ -1,6 +1,6 @@
 'use client';
 
-import { FollowerBasedSuggestionsPanel } from '../../../../packages/features/follower-based-suggestions';
+import { FollowerBasedSuggestionsPanel } from '@xboost/follower-based-suggestions';
 
 export default function FollowerBasedSuggestionsPage() {
   return (

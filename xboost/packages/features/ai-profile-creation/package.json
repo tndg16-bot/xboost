@@ -1,9 +1,12 @@
 {
-  "name": "@xboost/features/ai-profile-creation",
+  "name": "@xboost/ai-profile-creation",
   "version": "0.0.1",
   "private": true,
   "main": "./index.ts",
   "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
   "dependencies": {
     "react": "^19.0.0",
     "@xboost/ui": "workspace:*"

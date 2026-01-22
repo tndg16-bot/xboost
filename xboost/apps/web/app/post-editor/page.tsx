@@ -1,6 +1,6 @@
 'use client';
 
-import { PostEditor } from '../../../packages/features/post-editor';
+import { PostEditor } from '@xboost/post-editor';
 
 export default function PostEditorPage() {
   const handleChange = (content: string) => {

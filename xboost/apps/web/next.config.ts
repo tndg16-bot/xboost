@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  transpilePackages: ['@xboost/ui', '@xboost/multi-account', '@xboost/post-editor', '@xboost/scheduling', '@xboost/automation'],
 };
 
 export default nextConfig;

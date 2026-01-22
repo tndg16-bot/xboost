@@ -3,40 +3,16 @@
 import { useState, useEffect } from 'react';
 import { AccountList } from './components/AccountList';
 import { AccountSwitcher } from './components/AccountSwitcher';
-
-type TwitterAccountRole = 'MAIN' | 'SUB' | 'NICHE';
-
-interface TwitterAccount {
-  id: string;
-  username: string;
-  displayName: string | null;
-  profileImageUrl: string | null;
-  role: TwitterAccountRole;
-  color: string;
-  description: string | null;
-  isActive: boolean;
-  createdAt: string;
-  _count: {
-    posts: number;
-    scheduledPosts: number;
-  };
-}
-
-interface AccountMetrics {
-  accountId: string;
-  postCount: number;
-  avgEngagementRate: number;
-}
+import { AccountSettings } from './components/AccountSettings';
+import { type TwitterAccount } from './components/AccountCard';
 
 export const MultiAccountDashboard = () => {
   const [activeAccountId, setActiveAccountId] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<TwitterAccount | null>(null);
   const [accounts, setAccounts] = useState<TwitterAccount[]>([]);
-  const [metrics, setMetrics] = useState<Record<string, AccountMetrics>>({});
   const [loading, setLoading] = useState(true);
 
-  // Fetch accounts from API
   useEffect(() => {
     fetchAccounts();
   }, []);
@@ -48,20 +24,9 @@ export const MultiAccountDashboard = () => {
       const data = await response.json();
       setAccounts(data.accounts || []);
 
-      // Calculate metrics for each account
-      const metricsMap: Record<string, AccountMetrics> = {};
-      for (const account of data.accounts || []) {
-        metricsMap[account.id] = {
-          accountId: account.id,
-          postCount: account._count?.posts || 0,
-          avgEngagementRate: 2.5, // Default for now, should come from analytics
-        };
-      }
-      setMetrics(metricsMap);
-
-      // Set active account if not set
       if (!activeAccountId && data.accounts && data.accounts.length > 0) {
-        setActiveAccountId(data.accounts[0].id);
+        const activeAccount = data.accounts.find((a: TwitterAccount) => a.isActive) || data.accounts[0];
+        setActiveAccountId(activeAccount.id);
       }
     } catch (error) {
       console.error('Failed to fetch accounts:', error);
@@ -72,14 +37,19 @@ export const MultiAccountDashboard = () => {
 
   const handleAccountSelect = async (accountId: string) => {
     try {
-      // Call API to switch active account
       await fetch(`/api/twitter-accounts/${accountId}/switch`, {
         method: 'POST',
       });
       setActiveAccountId(accountId);
       setShowSettings(false);
+
+      const updatedAccounts = accounts.map((acc) =>
+        acc.id === accountId ? { ...acc, isActive: true } : { ...acc, isActive: false }
+      );
+      setAccounts(updatedAccounts);
     } catch (error) {
       console.error('Failed to switch account:', error);
+      alert('アカウントの切り替えに失敗しました。');
     }
   };
 
@@ -88,10 +58,55 @@ export const MultiAccountDashboard = () => {
     setShowSettings(true);
   };
 
-  const activeAccount = accounts.find((a) => a.id === activeAccountId);
-  const activeMetrics = activeAccountId ? metrics[activeAccountId] : null;
+  const handleSaveSettings = async (accountId: string, updates: Partial<TwitterAccount>) => {
+    try {
+      const response = await fetch(`/api/twitter-accounts/${accountId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
 
-  const getRoleEmoji = (role: TwitterAccountRole) => {
+      if (!response.ok) {
+        throw new Error('Failed to save account settings');
+      }
+
+      const data = await response.json();
+      const updatedAccounts = accounts.map((acc) =>
+        acc.id === accountId ? { ...acc, ...data.account } : acc
+      );
+      setAccounts(updatedAccounts);
+    } catch (error) {
+      console.error('Failed to save account settings:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteAccount = async (accountId: string) => {
+    try {
+      const response = await fetch(`/api/twitter-accounts/${accountId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete account');
+      }
+
+      const updatedAccounts = accounts.filter((acc) => acc.id !== accountId);
+      setAccounts(updatedAccounts);
+
+      if (activeAccountId === accountId && updatedAccounts.length > 0) {
+        const newActiveAccount = updatedAccounts.find((acc) => acc.isActive) || updatedAccounts[0];
+        setActiveAccountId(newActiveAccount.id);
+      }
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      throw error;
+    }
+  };
+
+  const activeAccount = accounts.find((a) => a.id === activeAccountId);
+
+  const getRoleEmoji = (role: TwitterAccount['role']) => {
     switch (role) {
       case 'MAIN': return '🎯 本アカ';
       case 'SUB': return '💼 サブ';
@@ -110,7 +125,6 @@ export const MultiAccountDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">マルチアカウント管理</h1>
@@ -118,11 +132,10 @@ export const MultiAccountDashboard = () => {
             複数アカウントをワンクリックで切り替えて運用
           </p>
         </div>
-        <AccountSwitcher accounts={accounts} onSelect={handleAccountSelect} />
+        <AccountSwitcher accounts={accounts} activeAccountId={activeAccountId} onSelect={handleAccountSelect} />
       </div>
 
-      {/* Active Account Overview */}
-      {activeAccount && activeMetrics && (
+      {activeAccount && (
         <div
           className="rounded-xl shadow-lg p-6 text-white"
           style={{ backgroundColor: activeAccount.color || '#3B82F6' }}
@@ -150,10 +163,10 @@ export const MultiAccountDashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="bg-white/20 rounded-lg p-3">
               <p className="text-xs opacity-80 mb-1">投稿数</p>
-              <p className="text-2xl font-bold">{activeMetrics.postCount}</p>
+              <p className="text-2xl font-bold">{activeAccount._count?.posts || 0}</p>
             </div>
             <div className="bg-white/20 rounded-lg p-3">
               <p className="text-xs opacity-80 mb-1">予約投稿</p>
@@ -163,21 +176,23 @@ export const MultiAccountDashboard = () => {
               <p className="text-xs opacity-80 mb-1">アカウントID</p>
               <p className="text-sm font-mono opacity-90">{activeAccount.id.substring(0, 8)}...</p>
             </div>
-            <div className="bg-white/20 rounded-lg p-3">
-              <p className="text-xs opacity-80 mb-1">エンゲージ率</p>
-              <p className="text-2xl font-bold">{activeMetrics.avgEngagementRate}%</p>
-            </div>
           </div>
         </div>
       )}
 
-      {/* Account List */}
       <AccountList
         accounts={accounts}
-        metrics={metrics}
         activeAccountId={activeAccountId}
         onAccountSelect={handleAccountSelect}
         onOpenSettings={handleOpenSettings}
+      />
+
+      <AccountSettings
+        account={selectedAccount}
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onSave={handleSaveSettings}
+        onDelete={handleDeleteAccount}
       />
     </div>
   );

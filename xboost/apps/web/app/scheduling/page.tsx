@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CalendarView, PostList } from '../../../packages/features/scheduling';
-import { ScheduledPost, ReservationFormData } from '../../../packages/features/scheduling';
-import { mockScheduledPosts } from '../../../packages/features/scheduling/mock-data';
+import { CalendarView, PostList, ScheduledPost, ReservationFormData, mockScheduledPosts } from '@xboost/scheduling';
 
 export default function SchedulingPage() {
   const [posts, setPosts] = useState<ScheduledPost[]>(mockScheduledPosts);

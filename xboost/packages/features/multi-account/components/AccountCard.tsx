@@ -1,28 +1,47 @@
 import { Card } from '@xboost/ui';
-import type { Account, AccountMetrics } from '../mockData';
+
+export type TwitterAccountRole = 'MAIN' | 'SUB' | 'NICHE';
+
+export interface TwitterAccount {
+  id: string;
+  userId: string;
+  twitterId: string;
+  username: string;
+  displayName: string | null;
+  profileImageUrl: string | null;
+  isActive: boolean;
+  role: TwitterAccountRole;
+  color: string;
+  description: string | null;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+  _count?: {
+    posts: number;
+    scheduledPosts: number;
+  };
+}
 
 interface AccountCardProps {
-  account: Account;
-  metrics?: AccountMetrics;
+  account: TwitterAccount;
   isActive: boolean;
   onSelect: (accountId: string) => void;
-  onOpenSettings: (account: Account) => void;
+  onOpenSettings: (account: TwitterAccount) => void;
 }
 
 export const AccountCard = ({
   account,
-  metrics,
   isActive,
   onSelect,
   onOpenSettings,
 }: AccountCardProps) => {
   const getRoleLabel = () => {
     switch (account.role) {
-      case 'main':
+      case 'MAIN':
         return '🎯 本アカ';
-      case 'sub':
+      case 'SUB':
         return '💼 サブ';
-      case 'niche':
+      case 'NICHE':
         return '🎨 特化';
       default:
         return '';
@@ -31,16 +50,31 @@ export const AccountCard = ({
 
   const getRoleColor = () => {
     switch (account.role) {
-      case 'main':
+      case 'MAIN':
         return 'bg-blue-100 text-blue-700';
-      case 'sub':
+      case 'SUB':
         return 'bg-purple-100 text-purple-700';
-      case 'niche':
+      case 'NICHE':
         return 'bg-green-100 text-green-700';
       default:
         return 'bg-gray-100 text-gray-700';
     }
   };
+
+  const avatarDisplay = account.profileImageUrl ? (
+    <img
+      src={account.profileImageUrl}
+      alt={account.displayName || account.username}
+      className="w-12 h-12 rounded-full object-cover"
+    />
+  ) : (
+    <div
+      className="w-12 h-12 rounded-full flex items-center justify-center text-xl"
+      style={{ backgroundColor: account.color }}
+    >
+      {(account.displayName || account.username)[0].toUpperCase()}
+    </div>
+  );
 
   return (
     <Card
@@ -52,10 +86,10 @@ export const AccountCard = ({
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <span className="text-3xl">{account.avatar}</span>
+          {avatarDisplay}
           <div>
-            <h3 className="font-semibold text-gray-900">{account.displayName}</h3>
-            <p className="text-sm text-gray-500">@{account.username.substring(1)}</p>
+            <h3 className="font-semibold text-gray-900">{account.displayName || account.username}</h3>
+            <p className="text-sm text-gray-500">@{account.username}</p>
           </div>
         </div>
         <span
@@ -66,41 +100,27 @@ export const AccountCard = ({
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-gray-50 rounded-lg p-3">
-          <p className="text-xs text-gray-500 mb-1">フォロワー</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {(account.followerCount / 1000).toFixed(1)}K
-          </p>
-        </div>
-        {metrics && (
+        {account._count && (
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-500 mb-1">投稿数</p>
             <p className="text-lg font-semibold text-gray-900">
-              {metrics.postCount}
+              {account._count.posts}
             </p>
           </div>
         )}
-        {metrics && (
+        {account._count && account._count.scheduledPosts > 0 && (
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">総インプ</p>
+            <p className="text-xs text-gray-500 mb-1">予約投稿</p>
             <p className="text-lg font-semibold text-gray-900">
-              {(metrics.totalImpressions / 1000000).toFixed(2)}M
-            </p>
-          </div>
-        )}
-        {metrics && (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">エンゲ率</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {metrics.avgEngagementRate}%
+              {account._count.scheduledPosts}
             </p>
           </div>
         )}
       </div>
 
-      {metrics && metrics.lastPostedAt && (
-        <p className="text-xs text-gray-400 mb-4">
-          最終投稿: {metrics.lastPostedAt}
+      {account.description && (
+        <p className="text-xs text-gray-500 mb-4 line-clamp-2">
+          {account.description}
         </p>
       )}
 
