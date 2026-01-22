@@ -84,9 +84,62 @@ const FAQ_ITEMS = [
   },
 ];
 
+const SYNTAX_CATEGORIES = [
+  {
+    category: '断言型',
+    icon: '💪',
+    color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    examples: [
+      '断言しますが、〜です',
+      '〜は間違いありません',
+      '〜だと考えています',
+    ],
+  },
+  {
+    category: '問いかけ型',
+    icon: '❓',
+    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    examples: [
+      '〜だと思いますか？',
+      '〜についてどう思いますか？',
+      '〜を知っていますか？',
+    ],
+  },
+  {
+    category: '共感型',
+    icon: '🤗',
+    color: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+    examples: [
+      '〜だと思っている人',
+      '〜に共感する人',
+      '〜を経験したことある？',
+    ],
+  },
+  {
+    category: '情報提供型',
+    icon: '📚',
+    color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    examples: [
+      '〜を知っていますか？',
+      '〜を紹介します',
+      '〜の事実をお伝えします',
+    ],
+  },
+  {
+    category: '読み物型',
+    icon: '📖',
+    color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    examples: [
+      '唐突ですが、〜',
+      'ちょっとした話ですが、〜',
+      'ある日〜',
+    ],
+  },
+];
+
 export default function TutorialPage() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [activeTab, setActiveTab] = useState<'steps' | 'faq'>('steps');
+  const [activeTab, setActiveTab] = useState<'steps' | 'faq' | 'syntax'>('steps');
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 px-4 py-12 font-sans dark:from-black dark:to-zinc-900">
@@ -100,7 +153,7 @@ export default function TutorialPage() {
           </p>
         </div>
 
-        <div className="mb-8 flex justify-center gap-4">
+        <div className="mb-8 flex flex-wrap justify-center gap-4">
           <button
             onClick={() => setActiveTab('steps')}
             className={`rounded-full px-6 py-3 font-semibold transition-colors ${
@@ -110,6 +163,16 @@ export default function TutorialPage() {
             }`}
           >
             ステップバイステップ
+          </button>
+          <button
+            onClick={() => setActiveTab('syntax')}
+            className={`rounded-full px-6 py-3 font-semibold transition-colors ${
+              activeTab === 'syntax'
+                ? 'bg-teal-600 text-white'
+                : 'bg-white text-zinc-700 hover:bg-zinc-50 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
+            }`}
+          >
+            構文テンプレート
           </button>
           <button
             onClick={() => setActiveTab('faq')}
@@ -185,6 +248,41 @@ export default function TutorialPage() {
               </ul>
             </div>
           </>
+        )}
+
+        {activeTab === 'syntax' && (
+          <div className="space-y-4">
+            <div className="mb-4 rounded-xl border-2 border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                💡 構文テンプレートを参考に、効果的な投稿を作成しましょう！
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {SYNTAX_CATEGORIES.map((syntax, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl border-2 border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
+                >
+                  <div className="mb-3 flex items-center gap-2">
+                    <span className="text-2xl">{syntax.icon}</span>
+                    <span className={`rounded-full px-3 py-1 text-sm font-semibold ${syntax.color}`}>
+                      {syntax.category}
+                    </span>
+                  </div>
+                  <ul className="space-y-2">
+                    {syntax.examples.map((example, i) => (
+                      <li
+                        key={i}
+                        className="rounded-lg bg-zinc-50 p-2 text-sm text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                      >
+                        {example}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {activeTab === 'faq' && (
