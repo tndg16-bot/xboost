@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, Quote, Plus, Trash2, Send, Clock, Edit3 } from 'lucide-react';
 
 interface DraftPost {
@@ -28,6 +28,14 @@ export default function QuoteRetweetPage() {
   const [selectedDraft, setSelectedDraft] = useState<DraftPost | null>(null);
   const [quoteComment, setQuoteComment] = useState('');
   const [showDraftForm, setShowDraftForm] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCreateDraft = () => {
     if (!newDraftContent.trim()) return;
@@ -71,22 +79,25 @@ export default function QuoteRetweetPage() {
   };
 
   const handleScheduleQuote = (quote: QuoteRetweet) => {
-    const hoursAhead = Math.floor(Math.random() * 24) + 1;
-    const scheduledAt = new Date(Date.now() + hoursAhead * 60 * 60 * 1000);
+    const scheduleQuote = () => {
+      const hoursAhead = Math.floor(Math.random() * 24) + 1;
+      const scheduledAt = new Date(Date.now() + hoursAhead * 60 * 60 * 1000);
 
-    setQuoteRetweets(prev =>
-      prev.map(q =>
-        q.id === quote.id ? { ...q, scheduledAt, status: 'scheduled' as const } : q
-      )
-    );
+      setQuoteRetweets(prev =>
+        prev.map(q =>
+          q.id === quote.id ? { ...q, scheduledAt, status: 'scheduled' as const } : q
+        )
+      );
+    };
+
+    scheduleQuote();
   };
 
   const handleDeleteQuote = (quoteId: string) => {
     setQuoteRetweets(prev => prev.filter(q => q.id !== quoteId));
   };
 
-  const formatDate = (date: Date): string => {
-    const now = Date.now();
+  const formatDate = (date: Date, now: number): string => {
     const diff = now - date.getTime();
     const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -215,7 +226,7 @@ export default function QuoteRetweetPage() {
                             {draft.content}
                           </p>
                           <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                            <span>{formatDate(draft.createdAt)}に作成</span>
+                            <span>{formatDate(draft.createdAt, now)}に作成</span>
                             <button
                               onClick={e => {
                                 e.stopPropagation();

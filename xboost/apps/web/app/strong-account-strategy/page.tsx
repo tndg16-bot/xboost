@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Reply, Repeat2, Target, TrendingUp, Settings2, MessageCircle, Zap, ChevronDown, ChevronUp, Upload, Download } from 'lucide-react';
+import { Users, Reply, Repeat2, Target, TrendingUp, Settings2, Zap, ChevronDown, ChevronUp, Upload, Download } from 'lucide-react';
 
 interface StrongAccount {
   id: string;
@@ -26,7 +26,7 @@ interface StrategyConfig {
 
 export default function StrongAccountStrategyPage() {
   const [accounts, setAccounts] = useState<StrongAccount[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<StrongAccount | null>(null);
+  const [selectedAccount, _setSelectedAccount] = useState<StrongAccount | null>(null);
   const [config, setConfig] = useState<StrategyConfig>({
     enabled: true,
     defaultStrategy: 'both',
@@ -87,16 +87,19 @@ export default function StrongAccountStrategyPage() {
 
     return (
       <div className="absolute right-0 top-full mt-1 w-[180px] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-20">
-        {(['both', 'quote', 'reply', 'none'] as const).map(strat => (
-          <button
-            key={strat}
-            onClick={() => handleToggleStrategy(account.id, strat)}
-            className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
-          >
-            <badges[strat].icon className={`h-4 w-4 ${badges[strat].color}`} />
-            <span className={badges[strat].color}>{badges[strat].label}</span>
-          </button>
-        ))}
+        {(['both', 'quote', 'reply', 'none'] as const).map(strat => {
+          const Icon = badges[strat].icon;
+          return (
+            <button
+              key={strat}
+              onClick={() => handleToggleStrategy(account.id, strat)}
+              className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
+            >
+              <Icon className={`h-4 w-4 ${badges[strat].color}`} />
+              <span className={badges[strat].color}>{badges[strat].label}</span>
+            </button>
+          );
+        })}
       </div>
     );
   };
@@ -370,6 +373,7 @@ export default function StrongAccountStrategyPage() {
                       const categoryBadge = getCategoryBadge(account.category);
                       const strategyBadge = getStrategyBadge(account.strategy);
                       const isDropdownOpen = showStrategyDropdown === account.id;
+                      const StrategyIcon = strategyBadge.icon;
 
                       return (
                         <div
@@ -407,7 +411,6 @@ export default function StrongAccountStrategyPage() {
                                 </div>
                               </div>
                             </div>
-                          </div>
 
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900 rounded-lg">
@@ -425,7 +428,7 @@ export default function StrongAccountStrategyPage() {
                                   }}
                                   className="flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full flex items-center gap-1.5"
                                 >
-                                  <strategyBadge.icon className={`h-3.5 w-3.5 ${strategyBadge.color}`} />
+                                  <StrategyIcon className={`h-3.5 w-3.5 ${strategyBadge.color}`} />
                                   <span className={strategyBadge.color}>{strategyBadge.label}</span>
                                   {isDropdownOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                                 </button>
