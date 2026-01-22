@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "xboost-local": {
+      "command": "node",
+      "args": ["C:\\Users\\chatg\\Obsidian Vault\\papa\\Apps\\Tools\\xboost\\xboost\\packages\\mcp-server\\dist\\index.js"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}",
+        "XBOOST_USER_ID": "${XBOOST_USER_ID}"
+      }
+    },
+    "xboost-prod": {
+      "command": "node",
+      "args": ["C:\\Users\\chatg\\Obsidian Vault\\papa\\Apps\\Tools\\xboost\\xboost\\packages\\mcp-server\\dist\\index.js"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}",
+        "XBOOST_USER_ID": "${XBOOST_USER_ID}"
+      }
+    }
+  }
+}

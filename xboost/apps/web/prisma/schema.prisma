@@ -19,8 +19,12 @@ model User {
   posts           Post[]
   scheduledPosts  ScheduledPost[]
   twitterAccounts TwitterAccount[]
+  apiKeys         ApiKey[]
+  activeAccountId String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+
+  @@index([activeAccountId])
 }
 
 model Account {
@@ -58,25 +62,37 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+enum TwitterAccountRole {
+  MAIN      // 🎯 本アカ
+  SUB       // 💼 サブ
+  NICHE     // 🎨 特化
+}
+
 model TwitterAccount {
-  id                String    @id @default(cuid())
+  id                String              @id @default(cuid())
   userId            String
-  twitterId         String    @unique
+  twitterId         String              @unique
   username          String
   displayName       String?
   profileImageUrl   String?
-  accessToken       String    @db.Text
-  refreshToken      String?   @db.Text
+  accessToken       String              @db.Text
+  refreshToken      String?             @db.Text
   tokenExpiresAt    DateTime?
-  isActive          Boolean   @default(true)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  isActive          Boolean             @default(true)
+  role              TwitterAccountRole  @default(SUB)
+  color             String              @default("#3B82F6")  // Blue default
+  description       String?
+  order             Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts          Post[]
   scheduledPosts ScheduledPost[]
 
   @@index([userId])
+  @@index([role])
+  @@index([isActive])
 }
 
 enum PostStatus {
@@ -85,6 +101,27 @@ enum PostStatus {
   PUBLISHED
   FAILED
   DELETED
+}
+
+enum ApiTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model ApiKey {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  userId       String
+  name         String
+  tier         ApiTier  @default(FREE)
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime?
+  expiresAt    DateTime?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([key])
 }
 
 model Post {
