@@ -15,7 +15,6 @@ PostgreSQLデータベース用にDocker Desktopを起動してください。
 ### 2. データベースを起動
 
 ```bash
-cd xboost
 docker compose up -d
 ```
 
@@ -38,7 +37,7 @@ NEXTAUTH_URL=http://localhost:3000
 ### 4. データベースマイグレーション
 
 ```bash
-cd xboost/apps/web
+cd apps/web
 npx prisma migrate dev --name init
 ```
 
