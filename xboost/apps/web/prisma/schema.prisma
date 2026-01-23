@@ -23,6 +23,10 @@ model User {
   activeAccountId String?
   stripeCustomerId String?         @unique
   subscription   Subscription?
+  autoRepostRules AutoRepostRule[]
+  autoRepostRules AutoRepostRule[]
+  autoRepostHistories AutoRepostHistory[]
+  autoDeleteRules AutoDeleteRule[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -144,6 +148,19 @@ enum PlanType {
   STARTER
   PRO
   TEAM
+}
+
+enum AutoRepostCondition {
+  IMPRESSIONS
+  LIKES
+  RETWEETS
+  ENGAGEMENT_RATE
+}
+
+enum AutoDeleteCondition {
+  DAYS_AFTER_PUBLISH
+  BELOW_IMPRESSIONS
+  ABOVE_IMPRESSIONS
 }
 
 model ApiKey {
@@ -283,4 +300,61 @@ model Invoice {
 
   @@index([stripeInvoiceId])
   @@index([userId])
+}
+
+model AutoRepostRule {
+  id              String              @id @default(cuid())
+  userId          String
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Conditions for triggering repost
+  enabled         Boolean             @default(false)
+  condition       AutoRepostCondition  @default(IMPRESSIONS)
+  threshold       Int                 @default(100000)
+
+  // Timing settings
+  delayHours     Int                 @default(24)
+  maxReposts     Int                 @default(3)
+
+  // Content settings
+  addComment     Boolean             @default(false)
+  comment         String?             @db.Text
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([enabled])
+}
+
+model AutoRepostHistory {
+  id              String    @id @default(cuid())
+  userId          String
+  ruleId          String
+  postId          String
+  repostedPostId String
+  reason          String    @db.Text
+  createdAt       DateTime  @default(now())
+
+  @@index([userId])
+  @@index([ruleId])
+  @@index([postId])
+}
+
+model AutoDeleteRule {
+  id                  String                 @id @default(cuid())
+  userId              String
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Conditions for deletion
+  isEnabled           Boolean                @default(true)
+  conditionType       AutoDeleteCondition     @default(DAYS_AFTER_PUBLISH)
+  daysThreshold       Int                    @default(30)
+  impressionsThreshold Int?
+
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  @@index([userId])
+  @@index([isEnabled])
 }
