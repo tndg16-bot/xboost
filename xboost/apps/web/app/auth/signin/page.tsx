@@ -26,11 +26,28 @@ export default function SignInPage() {
                 <p className="font-medium text-zinc-900 dark:text-zinc-50">
                   初回は2回認証が必要です
                 </p>
-                <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-                  1回目：アカウントの連携
-                  <br />
-                  2回目：投稿許可の取得
-                </p>
+
+                {/* Step Indicator */}
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white dark:bg-teal-400">
+                      1
+                    </div>
+                    <p className="text-zinc-600 dark:text-zinc-400">
+                      アカウントの連携
+                    </p>
+                  </div>
+                  <div className="ml-3 border-l-2 border-zinc-300 dark:border-zinc-600 pl-5">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-300 text-xs font-bold text-zinc-600 dark:bg-zinc-600 dark:text-zinc-400">
+                        2
+                      </div>
+                      <p className="text-zinc-600 dark:text-zinc-400">
+                        投稿許可の取得
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

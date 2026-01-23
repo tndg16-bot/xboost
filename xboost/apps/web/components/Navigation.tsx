@@ -3,9 +3,11 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
 
 export function Navigation() {
+  const handleLinkClick = () => {
+    // Placeholder function for link clicks
+  };
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
