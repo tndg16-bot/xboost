@@ -1,0 +1,45 @@
+{
+  "name": "@xboost/utils",
+  "version": "1.0.0",
+  "description": "Xboost shared utilities",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "import": "./index.ts",
+      "require": "./index.ts"
+    },
+    "./date": {
+      "types": "./date.ts",
+      "import": "./date.ts",
+      "require": "./date.ts"
+    },
+    "./string": {
+      "types": "./string.ts",
+      "import": "./string.ts",
+      "require": "./string.ts"
+    },
+    "./validation": {
+      "types": "./validation.ts",
+      "import": "./validation.ts",
+      "require": "./validation.ts"
+    }
+  },
+  "files": ["dist", "*.ts"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint . --ext .ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
+  },
+  "keywords": ["xboost", "utils", "utilities"],
+  "author": "Xboost",
+  "license": "MIT"
+}
