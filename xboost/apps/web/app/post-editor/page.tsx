@@ -3,8 +3,8 @@
 import { PostEditor } from '@xboost/post-editor';
 
 export default function PostEditorPage() {
-  const handleChange = (content: string) => {
-    console.log('Post content:', content);
+  const handleChange = (_content: string) => {
+    // Post content changed
   };
 
   return (

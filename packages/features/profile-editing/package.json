@@ -1,11 +1,11 @@
 {
-  "name": "@xboost/features/profile-editing",
+  "name": "@xboost/profile-editing",
   "version": "0.0.1",
   "private": true,
   "main": "./index.ts",
   "types": "./index.ts",
   "dependencies": {
     "react": "^19.0.0",
-    "@xboost/ui": "workspace:*"
+    "@xboost/ui": "file:../../ui"
   }
 }

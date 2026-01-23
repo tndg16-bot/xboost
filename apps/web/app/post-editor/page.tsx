@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { PostEditor } from '../../../packages/features/post-editor';
+import { PostEditor } from '@xboost/post-editor';
 import { SkeletonLoadingScreen } from '@xboost/ui';
 
 export default function PostEditorPage() {
@@ -16,8 +16,8 @@ export default function PostEditorPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleChange = (content: string) => {
-    console.log('Post content:', content);
+  const handleChange = (_content: string) => {
+    // Handle content change
   };
 
   if (isLoading) {

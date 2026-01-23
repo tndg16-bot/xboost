@@ -1,10 +1,10 @@
 'use client';
 
-import { ViralPostQueue } from './ViralPostQueue';
-import { RepostSchedule } from './RepostSchedule';
-import { AutoDeleteSettings } from './AutoDeleteSettings';
-import { AutoPlugSettings } from './AutoPlugSettings';
-import { RepostHistory } from './RepostHistory';
+import { ViralPostQueue } from './components/ViralPostQueue';
+import { RepostSchedule } from './components/RepostSchedule';
+import { AutoDeleteSettings } from './components/AutoDeleteSettings';
+import { AutoPlugSettings } from './components/AutoPlugSettings';
+import { RepostHistory } from './components/RepostHistory';
 
 export const AutomationDashboard = () => {
   return (

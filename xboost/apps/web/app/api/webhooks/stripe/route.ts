@@ -2,7 +2,7 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe-server';
 import { prisma } from '@/lib/prisma';
-import crypto from 'crypto';
+import _crypto from 'crypto';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
         await handleInvoiceFailed(event.data.object);
         break;
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        break;
     }
 
     return NextResponse.json({ received: true });
@@ -82,7 +82,6 @@ async function handleCheckoutCompleted(session: any) {
   });
 
   if (existing) {
-    console.log('Subscription already processed, skipping');
     return;
   }
 
@@ -107,7 +106,6 @@ async function handleSubscriptionCreated(subscription: any) {
   });
 
   if (existing) {
-    console.log('Subscription already exists, skipping');
     return;
   }
 

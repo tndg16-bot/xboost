@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Target, TrendingUp, Calendar, BarChart3, PieChart, Lightbulb, ArrowUpRight, Download } from 'lucide-react';
+import { Target, TrendingUp, BarChart3, PieChart, Lightbulb, ArrowUpRight, Download, Timer } from 'lucide-react';
 
 interface StrategyMetric {
   id: string;
@@ -153,8 +153,8 @@ export default function StrategyRoomPage() {
   const tabs = [
     { id: 'overview', label: '概要', icon: Target },
     { id: 'content', label: 'コンテンツ戦略', icon: Lightbulb },
-    { id: 'timing', label: 'タイミング分析', icon: Clock },
-    { id: 'insights', label: 'インサイト', icon: BarChart3 },
+    { id: 'timing', label: 'タイミング分析', icon: BarChart3 },
+    { id: 'insights', label: 'インサイト', icon: PieChart },
   ];
 
   return (
@@ -409,7 +409,7 @@ export default function StrategyRoomPage() {
             <div className="grid lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 shadow-sm dark:bg-gray-800">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-indigo-600" />
+                  <Timer className="h-5 w-5 text-indigo-600" />
                   最適投稿時間
                 </h3>
 

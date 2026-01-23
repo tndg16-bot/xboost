@@ -108,7 +108,7 @@ export async function getApiKeyTier(request: Request): Promise<ApiTier | null> {
     });
 
     return keyRecord?.tier as ApiTier || 'FREE';
-  } catch (error) {
+  } catch {
     return null;
   }
 }

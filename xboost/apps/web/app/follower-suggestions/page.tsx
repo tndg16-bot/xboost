@@ -2,13 +2,6 @@
 
 import { useState } from 'react';
 
-interface ProfileForm {
-  name: string;
-  bio: string;
-  location: string;
-  website: string;
-}
-
 interface FollowerBasedSuggestion {
   id: string;
   followerRange: string;

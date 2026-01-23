@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "react": "^19.0.0",
-    "@xboost/ui": "workspace:*"
+    "@xboost/ui": "file:../../ui"
   }
 }

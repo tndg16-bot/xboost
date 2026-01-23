@@ -12,7 +12,9 @@ const colors = {
   'gray-700': '#374151',
   'gray-900': '#111827',
   'green-500': '#17BF63',
+  'blue-100': '#DBEAFE',
   'blue-500': '#1DA1F2',
+  'blue-600': '#0284C7',
   'red-500': '#EF4444',
 } as const;
 

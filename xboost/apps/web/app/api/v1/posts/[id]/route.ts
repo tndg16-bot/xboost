@@ -8,13 +8,14 @@ const db = prisma as any;
 type PostStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'FAILED' | 'DELETED';
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(
   request: Request,
   { params }: RouteContext
 ) {
+  const { id } = await params;
   const authResponse = await withApiAuthAndRateLimit(request);
   if (authResponse) return authResponse;
 
@@ -23,7 +24,7 @@ export async function GET(
 
   const post = await db.post.findFirst({
     where: {
-      id: params.id,
+      id,
       userId: user!.id,
     },
     include: {
@@ -54,6 +55,7 @@ export async function PATCH(
   request: Request,
   { params }: RouteContext
 ) {
+  const { id } = await params;
   const authResponse = await withApiAuthAndRateLimit(request);
   if (authResponse) return authResponse;
 
@@ -65,7 +67,7 @@ export async function PATCH(
 
   // Verify ownership
   const existing = await db.post.findFirst({
-    where: { id: params.id, userId: user!.id },
+    where: { id, userId: user!.id },
   });
 
   if (!existing) {
@@ -92,7 +94,7 @@ export async function PATCH(
   }
 
   const post = await db.post.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       ...(content !== undefined && { content }),
       ...(mediaUrls !== undefined && { mediaUrls }),
@@ -120,6 +122,7 @@ export async function DELETE(
   request: Request,
   { params }: RouteContext
 ) {
+  const { id } = await params;
   const authResponse = await withApiAuthAndRateLimit(request);
   if (authResponse) return authResponse;
 
@@ -128,7 +131,7 @@ export async function DELETE(
 
   // Verify ownership
   const existing = await db.post.findFirst({
-    where: { id: params.id, userId: user!.id },
+    where: { id, userId: user!.id },
   });
 
   if (!existing) {
@@ -139,7 +142,7 @@ export async function DELETE(
   }
 
   await db.post.update({
-    where: { id: params.id },
+    where: { id },
     data: { status: 'DELETED' },
   });
 

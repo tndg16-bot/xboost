@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CalendarView, PostList } from '../../../packages/features/scheduling';
-import { ScheduledPost, ReservationFormData } from '../../../packages/features/scheduling';
-import { mockScheduledPosts } from '../../../packages/features/scheduling/mock-data';
+import { CalendarView, PostList } from '@xboost/scheduling';
+import { ScheduledPost, ReservationFormData } from '@xboost/scheduling';
+import { mockScheduledPosts } from '@xboost/scheduling/mock-data';
 import { SkeletonList } from '@xboost/ui';
 
 export default function SchedulingPage() {
@@ -129,9 +129,13 @@ export default function SchedulingPage() {
           ) : (
             <PostList
               posts={posts}
-              onPostClick={(post: ScheduledPost) => console.log('Clicked post:', post.id)}
+              onPostClick={(_post: ScheduledPost) => {
+                // Handle post click
+              }}
               onPostDelete={handlePostDelete}
-              onPostEdit={(post: ScheduledPost) => console.log('Edit post:', post.id)}
+              onPostEdit={(_post: ScheduledPost) => {
+                // Handle post edit
+              }}
             />
           )}
         </div>

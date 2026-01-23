@@ -15,6 +15,7 @@ const colors = {
   'red-500': '#EF4444',
   'yellow-500': '#F59E0B',
   'yellow-100': '#FEF3C7',
+  'yellow-600': '#D97706',
 } as const;
 
 interface PostWithMetrics {

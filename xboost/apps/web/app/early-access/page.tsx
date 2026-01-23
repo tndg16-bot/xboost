@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface CouponCode {
   code: string;
@@ -12,14 +12,17 @@ interface CouponCode {
 }
 
 export default function EarlyAccessPage() {
-  const [coupons, setCoupons] = useState<CouponCode[]>([
-    {
+  const thirtyDaysInMs = useMemo(() => 30 * 24 * 60 * 60 * 1000, []);
+
+  const [coupons, setCoupons] = useState<CouponCode[]>(() => {
+    const now = Date.now();
+    return [{
       code: 'EARLYBIRD2024',
       status: 'available',
-      createdAt: new Date().toISOString(),
-      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ]);
+      createdAt: new Date(now).toISOString(),
+      validUntil: new Date(now + thirtyDaysInMs).toISOString(),
+    }];
+  });
   const [newCode, setNewCode] = useState('');
 
   const [showCouponModal, setShowCouponModal] = useState(false);

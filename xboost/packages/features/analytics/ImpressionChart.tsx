@@ -61,7 +61,7 @@ export const ImpressionChart: React.FC<ImpressionChartProps> = ({ data }) => {
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           }}
-          formatter={(value: number) => [formatImpressions(value), 'Impressions']}
+          formatter={(value: number | undefined) => value !== undefined ? [formatImpressions(value), 'Impressions'] : ['', '']}
         />
         <Legend />
         <Line

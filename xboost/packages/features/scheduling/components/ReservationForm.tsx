@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ReservationFormData, ScheduledPost, PostStatus } from '../types';
-import { Modal, Button, Input } from '@xboost/ui';
+import { Modal, Button, Input, Textarea } from '@xboost/ui';
 
 interface ReservationFormProps {
   isOpen: boolean;
@@ -97,12 +97,11 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
       <div className="space-y-5">
         {/* Content Input */}
         <div>
-          <Input
+          <Textarea
             label="投稿内容"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => setContent((e.target as HTMLTextAreaElement).value)}
             placeholder="何を投稿しますか？"
-            multiline
             rows={4}
             error={isOverLimit ? `${characterCount} / 280 文字 - 文字数制限を超えています` : undefined}
             helperText={`${characterCount} / 280 文字`}

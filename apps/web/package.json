@@ -15,11 +15,25 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
     "@prisma/client": "^7.3.0",
+    "@stripe/stripe-js": "^8.6.4",
     "next": "16.1.4",
     "next-auth": "^4.24.13",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "recharts": "^3.7.0"
+    "recharts": "^3.7.0",
+    "stripe": "^20.2.0",
+    "@xboost/ui": "file:../packages/ui",
+    "@xboost/analytics": "file:../packages/features/analytics",
+    "@xboost/automation": "file:../packages/features/automation",
+    "@xboost/scheduling": "file:../packages/features/scheduling",
+    "@xboost/ai-post-generation": "file:../packages/features/ai-post-generation",
+    "@xboost/ai-profile-creation": "file:../packages/features/ai-profile-creation",
+    "@xboost/ai-rewrite": "file:../packages/features/ai-rewrite",
+    "@xboost/empathy-post": "file:../packages/features/empathy-post",
+    "@xboost/multi-account": "file:../packages/features/multi-account",
+    "@xboost/personal-brand": "file:../packages/features/personal-brand",
+    "@xboost/post-editor": "file:../packages/features/post-editor",
+    "@xboost/profile-editing": "file:../packages/features/profile-editing"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

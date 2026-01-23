@@ -7,7 +7,7 @@ const db = prisma as any;
 
 type TwitterAccountRole = 'MAIN' | 'SUB' | 'NICHE';
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   const session = await auth();
 
   if (!session?.user?.id) {

@@ -49,7 +49,7 @@ export const FollowerGrowthChart: React.FC<FollowerGrowthChartProps> = ({ data }
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           }}
-          formatter={(value: number) => [formatFollowers(value), 'Followers']}
+          formatter={(value: number | undefined) => [formatFollowers(value ?? 0), 'Followers']}
         />
         <Area
           type="monotone"

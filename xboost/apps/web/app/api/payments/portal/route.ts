@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
 
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
   const session = await auth();
 
   if (!session?.user?.id) {

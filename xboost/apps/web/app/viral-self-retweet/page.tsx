@@ -50,12 +50,13 @@ export default function ViralSelfRetweetPage() {
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
 
   const handleScheduleRetweet = (post: ViralPost) => {
-    const hoursSincePost = (Date.now() - post.postedAt.getTime()) / (1000 * 60 * 60);
+    const now = new Date().getTime();
+    const hoursSincePost = (now - post.postedAt.getTime()) / (1000 * 60 * 60);
     const delayHours = hoursSincePost < 72 ? 72 - hoursSincePost : 168 - hoursSincePost;
-    const scheduledAt = new Date(Date.now() + delayHours * 60 * 60 * 1000);
+    const scheduledAt = new Date(now + delayHours * 60 * 60 * 1000);
 
     const retweet: AutoSelfRetweet = {
-      id: `retweet-${Date.now()}`,
+      id: `retweet-${now}`,
       postId: post.id,
       postContent: post.content,
       retweetScheduledAt: scheduledAt,

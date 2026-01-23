@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "xboost/apps/*",
-    "xboost/packages/*",
-    "xboost/packages/features/*"
+    "apps/*",
+    "packages/*",
+    "packages/features/*"
   ],
   "scripts": {
     "dev": "npm run dev --workspaces",

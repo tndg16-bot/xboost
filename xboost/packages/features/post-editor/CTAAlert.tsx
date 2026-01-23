@@ -44,6 +44,7 @@ export function CTAAlert({ content, onDismiss }: CTAAlertProps) {
     );
 
     setShowAlert(!hasCTA);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content]);
 
   if (!showAlert) return null;
