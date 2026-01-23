@@ -1,6 +1,6 @@
 'use client';
 
-import { getViralPosts, PostPerformance } from './mockData';
+import { useState, useEffect } from 'react';
 
 const colors = {
   white: '#FFFFFF',
@@ -13,10 +13,33 @@ const colors = {
   'gray-900': '#111827',
   'green-500': '#17BF63',
   'blue-500': '#1DA1F2',
+  'red-500': '#EF4444',
 } as const;
 
 export const PatternDetector: React.FC = () => {
-  const viralPosts = getViralPosts();
+  const [loading, setLoading] = useState(true);
+  const [analysis, setAnalysis] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchWinningPatterns();
+  }, []);
+
+  const fetchWinningPatterns = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/v1/analytics/winning-patterns?period=30d');
+      if (!response.ok) {
+        throw new Error('Failed to fetch winning patterns');
+      }
+      const data = await response.json();
+      setAnalysis(data.analysis);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -24,23 +47,33 @@ export const PatternDetector: React.FC = () => {
     return num.toString();
   };
 
-  const analyzePatterns = () => {
-    const totalViralImpressions = viralPosts.reduce((sum, post) => sum + post.impressions, 0);
-    const totalPosts = 12; // From mock data
-    const viralRate = (viralPosts.length / totalPosts) * 100;
-    const avgImpressions = totalViralImpressions / viralPosts.length;
-    const avgEngagement =
-      viralPosts.reduce((sum, post) => sum + post.engagementRate, 0) / viralPosts.length;
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900">Viral Post Pattern Detector</h3>
+        </div>
+        <div className="p-6 text-center text-gray-500">Loading...</div>
+      </div>
+    );
+  }
 
-    return {
-      totalViralImpressions,
-      viralRate,
-      avgImpressions,
-      avgEngagement,
-    };
-  };
+  if (error) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900">Viral Post Pattern Detector</h3>
+        </div>
+        <div className="p-6 text-center text-red-500">{error}</div>
+      </div>
+    );
+  }
 
-  const patterns = analyzePatterns();
+  if (!analysis) {
+    return null;
+  }
+
+  const { viralPosts, viralStats, normalStats, insights } = analysis;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -53,7 +86,7 @@ export const PatternDetector: React.FC = () => {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Viral Post Pattern Detector</h3>
-            <p className="text-sm text-gray-500">Posts with 100K+ impressions</p>
+            <p className="text-sm text-gray-500">Analyze viral vs normal posts</p>
           </div>
         </div>
       </div>
@@ -65,70 +98,190 @@ export const PatternDetector: React.FC = () => {
             style={{ backgroundColor: `${colors['yellow-100']}` }}
           >
             <p className="text-3xl font-bold" style={{ color: colors['yellow-600'] }}>
-              {viralPosts.length}
+              {viralStats.count}
             </p>
             <p className="text-xs mt-1" style={{ color: colors['yellow-600'] }}>
               Viral Posts
             </p>
           </div>
           <div className="rounded-lg p-4 text-center bg-gray-50">
-            <p className="text-3xl font-bold text-gray-900">{patterns.viralRate.toFixed(0)}%</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {viralStats.count > 0 && normalStats.count > 0
+                ? ((viralStats.count / (viralStats.count + normalStats.count)) * 100).toFixed(1)
+                : '0'}
+              %
+            </p>
             <p className="text-xs text-gray-500 mt-1">Viral Rate</p>
           </div>
           <div className="rounded-lg p-4 text-center bg-gray-50">
             <p className="text-3xl font-bold" style={{ color: colors['blue-500'] }}>
-              {formatNumber(patterns.avgImpressions)}
+              {formatNumber(Math.floor(viralStats.avgImpressions))}
             </p>
-            <p className="text-xs text-gray-500 mt-1">Avg Impressions</p>
+            <p className="text-xs text-gray-500 mt-1">Avg Viral Impressions</p>
           </div>
           <div className="rounded-lg p-4 text-center bg-gray-50">
             <p className="text-3xl font-bold" style={{ color: colors['green-500'] }}>
-              {patterns.avgEngagement.toFixed(1)}%
+              {viralStats.avgEngagement.toFixed(1)}%
             </p>
-            <p className="text-xs text-gray-500 mt-1">Avg Engagement</p>
+            <p className="text-xs text-gray-500 mt-1">Avg Viral Engagement</p>
           </div>
         </div>
 
-        {/* Viral Posts List */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">Viral Posts</h4>
-          {viralPosts.map((post, index) => (
-            <div
-              key={post.id}
-              className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
-              style={{
-                backgroundColor: index === 0 ? `${colors['yellow-100']}` : 'transparent',
-                borderColor: index === 0 ? colors['yellow-500'] : colors['gray-200'],
-              }}
-            >
-              <div className="flex-shrink-0">
-                <span
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold"
-                  style={{
-                    backgroundColor: colors['yellow-500'],
-                    color: colors.white,
-                  }}
-                >
-                  {index === 0 && '🏆'}
-                  {index === 1 && '🥈'}
-                  {index === 2 && '🥉'}
-                  {index > 2 && index + 1}
-                </span>
+        {/* Comparison: Viral vs Normal */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="border border-gray-200 rounded-lg p-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Viral Posts Stats</h4>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Count:</span>
+                <span className="font-semibold text-gray-900">{viralStats.count}</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-700 line-clamp-2 mb-1">{post.content}</p>
-                <div className="flex items-center gap-3 text-xs text-gray-500">
-                  <span className="font-semibold" style={{ color: colors['blue-500'] }}>
-                    {formatNumber(post.impressions)} impressions
-                  </span>
-                  <span style={{ color: colors['green-500'] }}>
-                    {post.engagementRate}% engagement
-                  </span>
-                </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Avg Impressions:</span>
+                <span className="font-semibold text-gray-900">{formatNumber(Math.floor(viralStats.avgImpressions))}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Avg Engagement:</span>
+                <span className="font-semibold text-gray-900">{viralStats.avgEngagement.toFixed(2)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Avg Content Length:</span>
+                <span className="font-semibold text-gray-900">{viralStats.avgContentLength.toFixed(0)} lines</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Avg Character Count:</span>
+                <span className="font-semibold text-gray-900">{viralStats.avgCharacterCount.toFixed(0)} chars</span>
               </div>
             </div>
-          ))}
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Normal Posts Stats</h4>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Count:</span>
+                <span className="font-semibold text-gray-900">{normalStats.count}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Avg Impressions:</span>
+                <span className="font-semibold text-gray-900">{formatNumber(Math.floor(normalStats.avgImpressions))}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Avg Engagement:</span>
+                <span className="font-semibold text-gray-900">{normalStats.avgEngagement.toFixed(2)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Avg Content Length:</span>
+                <span className="font-semibold text-gray-900">{normalStats.avgContentLength.toFixed(0)} lines</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Avg Character Count:</span>
+                <span className="font-semibold text-gray-900">{normalStats.avgCharacterCount.toFixed(0)} chars</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Format Analysis */}
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">Best Performing Formats</h4>
+          <div className="space-y-2">
+            {viralStats.commonFormats.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                {viralStats.commonFormats.map((item: any) => (
+                  <div
+                    key={item.format}
+                    className="rounded p-2 text-center text-xs"
+                    style={{
+                      backgroundColor: `${colors['yellow-100']}`,
+                      color: colors['yellow-600'],
+                    }}
+                  >
+                    <div className="font-bold">{item.format}</div>
+                    <div className="text-gray-500">{item.count} posts</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content Type Analysis */}
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">Best Performing Content Types</h4>
+          <div className="space-y-2">
+            {viralStats.commonContentTypes.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {viralStats.commonContentTypes.map((item: any) => (
+                  <div
+                    key={item.type || 'unknown'}
+                    className="rounded p-2 text-center text-xs"
+                    style={{
+                      backgroundColor: `${colors['blue-100']}`,
+                      color: colors['blue-600'],
+                    }}
+                  >
+                    <div className="font-bold">{item.type || 'Unknown'}</div>
+                    <div className="text-gray-500">{item.count} posts</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Insights */}
+        {insights && (
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Key Insights</h4>
+            <div className="space-y-2 text-xs">
+              {insights.bestPerformingFormat && (
+                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: `${colors['green-500']}10` }}>
+                  <span style={{ color: colors['green-500'] }}>✓</span>
+                  <span className="text-gray-700">
+                    Best format: <strong>{insights.bestPerformingFormat}</strong>
+                  </span>
+                </div>
+              )}
+              {insights.bestPerformingContentType && (
+                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: `${colors['green-500']}10` }}>
+                  <span style={{ color: colors['green-500'] }}>✓</span>
+                  <span className="text-gray-700">
+                    Best content type: <strong>{insights.bestPerformingContentType || 'Mixed'}</strong>
+                  </span>
+                </div>
+              )}
+              {insights.optimalContentLength && (
+                <div className="flex items-center gap-2 p-2 rounded" style={{ backgroundColor: `${colors['green-500']}10` }}>
+                  <span style={{ color: colors['green-500'] }}>✓</span>
+                  <span className="text-gray-700">
+                    Optimal content length: <strong>{insights.optimalContentLength.min} - {insights.optimalContentLength.max} lines</strong>
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Sample Hooks */}
+        {viralStats.sampleHooks.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Viral Post Hooks (First Lines)</h4>
+            <div className="space-y-2">
+              {viralStats.sampleHooks.map((hook: string, index: number) => (
+                <div
+                  key={index}
+                  className="p-3 rounded-lg border border-gray-100 text-sm text-gray-700"
+                  style={{ backgroundColor: `${colors['yellow-100']}` }}
+                >
+                  <div className="font-semibold mb-1" style={{ color: colors['yellow-600'] }}>
+                    Hook #{index + 1}
+                  </div>
+                  <p className="text-xs italic">"{hook}"</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
