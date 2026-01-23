@@ -1,8 +1,9 @@
 export interface PreviewPaneProps {
   content: string;
+  mediaUrls?: string[];
 }
 
-export function PreviewPane({ content }: PreviewPaneProps) {
+export function PreviewPane({ content, mediaUrls = [] }: PreviewPaneProps) {
   // Mock user data - will be replaced with real user context
   const mockUser = {
     name: 'John Doe',
@@ -51,6 +52,88 @@ export function PreviewPane({ content }: PreviewPaneProps) {
                 </span>
               )}
             </div>
+
+            {/* Media Attachments Preview */}
+            {mediaUrls.length > 0 && (
+              <div className="mt-4 grid gap-2">
+                {mediaUrls.length === 1 && (
+                  <div className="overflow-hidden rounded-xl">
+                    {mediaUrls[0].includes('data:video') ? (
+                      <video
+                        src={mediaUrls[0]}
+                        controls
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={mediaUrls[0]}
+                        alt="Media attachment"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                )}
+                {mediaUrls.length === 2 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {mediaUrls.map((url, index) => (
+                      <div key={index} className="overflow-hidden rounded-xl">
+                        {url.includes('data:video') ? (
+                          <video
+                            src={url}
+                            controls
+                            className="aspect-square h-full w-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src={url}
+                            alt={`Media ${index}`}
+                            className="aspect-square h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {mediaUrls.length >= 3 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="overflow-hidden rounded-xl">
+                      {mediaUrls[0].includes('data:video') ? (
+                        <video
+                          src={mediaUrls[0]}
+                          controls
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <img
+                          src={mediaUrls[0]}
+                          alt="Media 0"
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="grid grid-rows-2 gap-2">
+                      {mediaUrls.slice(1).map((url, index) => (
+                        <div key={index} className="overflow-hidden rounded-xl">
+                          {url.includes('data:video') ? (
+                            <video
+                              src={url}
+                              controls
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <img
+                              src={url}
+                              alt={`Media ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Action Buttons (Mock) */}
             <div className="mt-4 flex items-center gap-12">

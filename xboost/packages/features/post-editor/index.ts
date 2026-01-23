@@ -1,19 +1,8 @@
-import { PreviewPaneProps } from './PreviewPane';
-import { EditorPaneProps } from './EditorPane';
-import { PostEditorProps } from './PostEditor';
-import { CharacterCounterProps } from './CharacterCounter';
-import { AIAssistButtonProps } from './AIAssistButton';
-
-export * from './PostEditor';
-export * from './EditorPane';
-export * from './PreviewPane';
-export * from './CharacterCounter';
-export * from './AIAssistButton';
-
-export type {
-  PostEditorProps,
-  EditorPaneProps,
-  PreviewPaneProps,
-  CharacterCounterProps,
-  AIAssistButtonProps,
-};
+export { EditorPane } from './EditorPane';
+export { PostEditor } from './PostEditor';
+export { PreviewPane } from './PreviewPane';
+export { CharacterCounter } from './CharacterCounter';
+export { AIAssistButton } from './AIAssistButton';
+export { CTAAlert } from './CTAAlert';
+export { SyntaxTemplateButton } from './SyntaxTemplateButton';
+export { MediaAttachment } from './MediaAttachment';
