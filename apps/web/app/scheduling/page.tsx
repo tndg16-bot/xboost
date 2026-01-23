@@ -1,13 +1,25 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CalendarView, PostList } from '../../../packages/features/scheduling';
 import { ScheduledPost, ReservationFormData } from '../../../packages/features/scheduling';
 import { mockScheduledPosts } from '../../../packages/features/scheduling/mock-data';
+import { SkeletonList } from '@xboost/ui';
 
 export default function SchedulingPage() {
-  const [posts, setPosts] = useState<ScheduledPost[]>(mockScheduledPosts);
+  const [posts, setPosts] = useState<ScheduledPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeView, setActiveView] = useState<'calendar' | 'list'>('calendar');
+
+  useEffect(() => {
+    // Simulate data fetching
+    const timer = setTimeout(() => {
+      setPosts(mockScheduledPosts);
+      setIsLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handlePostCreate = (data: ReservationFormData) => {
     const newPost: ScheduledPost = {
@@ -105,7 +117,9 @@ export default function SchedulingPage() {
 
         {/* Content */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-          {activeView === 'calendar' ? (
+          {isLoading ? (
+            <SkeletonList count={3} />
+          ) : activeView === 'calendar' ? (
             <CalendarView
               posts={posts}
               onPostCreate={handlePostCreate}
