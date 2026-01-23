@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { RATE_LIMIT_CONFIGS, getApiKeyTier } from './api-auth';
 
-type ApiTier = 'FREE' | 'PRO' | 'ENTERPRISE';
-
 interface RateLimitEntry {
   count: number;
   resetAt: number;

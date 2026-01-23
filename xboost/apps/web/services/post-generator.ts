@@ -134,7 +134,11 @@ const generateWithOpenAI = async (
     max_tokens: 1500,
   });
 
-  const result = JSON.parse(response.choices[0].message.content);
+  const content = response.choices[0].message.content;
+  if (!content) {
+    throw new Error('OpenAI returned empty content');
+  }
+  const result = JSON.parse(content);
   return result as PostPattern[];
 };
 

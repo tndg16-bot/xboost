@@ -24,9 +24,11 @@ model User {
   stripeCustomerId String?         @unique
   subscription   Subscription?
   autoRepostRules AutoRepostRule[]
-  autoRepostRules AutoRepostRule[]
   autoRepostHistories AutoRepostHistory[]
   autoDeleteRules AutoDeleteRule[]
+  autoPlugRules AutoPlugRule[]
+  plugHistories PlugHistory[]
+  plugTemplates PlugTemplate[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -330,6 +332,7 @@ model AutoRepostRule {
 model AutoRepostHistory {
   id              String    @id @default(cuid())
   userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   ruleId          String
   postId          String
   repostedPostId String
@@ -358,3 +361,67 @@ model AutoDeleteRule {
   @@index([userId])
   @@index([isEnabled])
 }
+
+model AutoPlugRule {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  enabled         Boolean   @default(false)
+  condition       String    @default("ENGAGEMENT_THRESHOLD")
+  metricType      String    @default("impressions")
+  threshold       Float     @default(10000)
+  hoursAfterPost  Int       @default(1)
+  maxPlugs       Int       @default(3)
+  useTemplate     Boolean   @default(true)
+  customContent   String?   @db.Text
+  insertAsReply  Boolean   @default(false)
+
+  templateId      String?
+  template        PlugTemplate? @relation(fields: [templateId], references: [id])
+
+  plugHistories   PlugHistory[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([enabled])
+}
+
+model PlugTemplate {
+  id              String         @id @default(cuid())
+  userId          String
+  name            String
+  content         String         @db.Text
+  addComment      Boolean        @default(false)
+  comment         String?        @db.Text
+  isDefault       Boolean        @default(false)
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plugRules       AutoPlugRule[]
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId])
+}
+
+model PlugHistory {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ruleId          String
+  originalPostId  String
+  insertedPostId String?
+  content         String    @db.Text
+  reason          String    @db.Text
+  createdAt       DateTime  @default(now())
+
+  rule            AutoPlugRule @relation(fields: [ruleId], references: [id])
+
+  @@index([userId])
+  @@index([ruleId])
+  @@index([originalPostId])
+}
+

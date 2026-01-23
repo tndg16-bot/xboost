@@ -76,7 +76,7 @@ export const TimeAnalysis: React.FC<TimeAnalysisProps> = ({ data }) => {
                   boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 }}
                 labelFormatter={(label) => `${label}:00`}
-                formatter={(value: number) => [formatImpressions(value), 'Impressions']}
+                formatter={(value: number | undefined) => value !== undefined ? [formatImpressions(value), 'Impressions'] : ['', '']}
               />
               <Bar dataKey="impressions" fill={colors['blue-500']} radius={[4, 4, 0, 0]} />
             </BarChart>

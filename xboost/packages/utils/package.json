@@ -1,0 +1,28 @@
+{
+  "name": "@xboost/utils",
+  "version": "0.1.0",
+  "description": "Xboost common utilities",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "require": "./src/index.ts"
+    }
+  },
+  "files": ["src"],
+  "scripts": {
+    "lint": "eslint . --ext .ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "date-fns": "^3.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  },
+  "keywords": ["xboost", "utils", "utilities"],
+  "author": "Xboost",
+  "license": "MIT"
+}

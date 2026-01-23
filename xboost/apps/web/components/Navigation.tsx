@@ -1,12 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 
 export function Navigation() {
-  const handleLinkClick = () => {
-    // Placeholder function for link clicks
-  };
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

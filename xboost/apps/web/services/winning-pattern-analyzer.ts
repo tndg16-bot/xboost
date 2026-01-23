@@ -237,7 +237,7 @@ export const analyzeWinningPatterns = (posts: Post[]): WinningPatternAnalysis =>
   };
 
   // インサイト生成
-  const insights = generateInsights(viralPosts, normalPosts, viralStats, normalStats);
+  const insights = generateInsights(viralPosts, normalPosts, viralStats);
 
   return {
     viralPosts,
@@ -335,9 +335,8 @@ const getSampleHooks = (posts: Post[], limit: number): string[] => {
  */
 const generateInsights = (
   viralPosts: Post[],
-  normalPosts: Post[],
-  viralStats: WinningPatternAnalysis['viralStats'],
-  normalStats: WinningPatternAnalysis['normalStats']
+  _normalPosts: Post[],
+  viralStats: WinningPatternAnalysis['viralStats']
 ): WinningPatternAnalysis['insights'] => {
   const insights: WinningPatternAnalysis['insights'] = {};
 

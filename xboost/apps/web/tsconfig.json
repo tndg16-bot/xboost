@@ -20,8 +20,21 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@xboost/ui": ["../packages/ui"],
-      "@xboost/*": ["../packages/features/*"]
+      "@xboost/ui": ["../../packages/ui"],
+      "@xboost/ai-post-generation": ["../../packages/features/ai-post-generation"],
+      "@xboost/ai-profile-creation": ["../../packages/features/ai-profile-creation"],
+      "@xboost/ai-rewrite": ["../../packages/features/ai-rewrite"],
+      "@xboost/analytics": ["../../packages/features/analytics"],
+      "@xboost/automation": ["../../packages/features/automation"],
+      "@xboost/empathy-post": ["../../packages/features/empathy-post"],
+      "@xboost/empathy-posts": ["../../packages/features/empathy-posts"],
+      "@xboost/follower-based-suggestions": ["../../packages/features/follower-based-suggestions"],
+      "@xboost/multi-account": ["../../packages/features/multi-account"],
+      "@xboost/personal-brand": ["../../packages/features/personal-brand"],
+      "@xboost/post-editor": ["../../packages/features/post-editor"],
+      "@xboost/profile-editing": ["../../packages/features/profile-editing"],
+      "@xboost/scheduling": ["../../packages/features/scheduling"],
+      "@xboost/topic-proposal": ["../../packages/features/topic-proposal"]
     },
     "baseUrl": "."
   },

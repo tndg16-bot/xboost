@@ -21,7 +21,7 @@
     "paths": {
       "@/*": ["./*"],
       "@xboost/ui": ["../../packages/ui"],
-      "@xboost/*": ["../../packages/*"]
+      "@xboost/*": ["../../packages/features/*"]
     }
   },
   "include": [

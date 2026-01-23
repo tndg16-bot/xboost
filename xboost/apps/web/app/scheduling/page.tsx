@@ -113,9 +113,9 @@ export default function SchedulingPage() {
           ) : (
             <PostList
               posts={posts}
-              onPostClick={(post: ScheduledPost) => console.log('Clicked post:', post.id)}
+              onPostClick={(_post: ScheduledPost) => {/* Post clicked */}}
               onPostDelete={handlePostDelete}
-              onPostEdit={(post: ScheduledPost) => console.log('Edit post:', post.id)}
+              onPostEdit={(_post: ScheduledPost) => {/* Edit post */}}
             />
           )}
         </div>

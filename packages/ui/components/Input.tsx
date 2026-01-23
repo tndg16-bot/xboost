@@ -37,28 +37,43 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   helperText?: string;
   rightElement?: React.ReactNode;
   leftElement?: React.ReactNode;
+  multiline?: boolean;
+  rows?: number;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant, size, label, error, helperText, rightElement, leftElement, disabled, id, ...props }, ref) => {
+const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(
+  ({ className, variant, size, label, error, helperText, rightElement, leftElement, disabled, id, multiline = false, ...props }, ref) => {
     const hasError = !!error;
-    const inputId = id || `input-${React.useId()}`;
+    const defaultId = React.useId();
+    const inputId = id || `input-${defaultId}`;
 
     return (
       <div className="w-full">
         {label && <label htmlFor={inputId} className="block mb-1.5 text-sm font-medium text-gray-700">{label}</label>}
         <div className="relative">
-          {leftElement && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">{leftElement}</div>}
-          <input
-            ref={ref}
-            id={inputId}
-            className={cn(inputVariants({ variant, size, hasError }), leftElement && 'pl-10', rightElement && 'pr-10', className)}
-            disabled={disabled}
-            aria-invalid={hasError}
-            aria-describedby={hasError ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
-            {...props}
-          />
-          {rightElement && <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">{rightElement}</div>}
+          {leftElement && !multiline && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">{leftElement}</div>}
+          {multiline ? (
+            <textarea
+              ref={ref as React.Ref<HTMLTextAreaElement>}
+              id={inputId}
+              className={cn(inputVariants({ variant, size, hasError }), leftElement && 'pl-10', rightElement && 'pr-10', className)}
+              disabled={disabled}
+              aria-invalid={hasError}
+              aria-describedby={hasError ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
+              {...(props as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
+            />
+          ) : (
+            <input
+              ref={ref as React.Ref<HTMLInputElement>}
+              id={inputId}
+              className={cn(inputVariants({ variant, size, hasError }), leftElement && 'pl-10', rightElement && 'pr-10', className)}
+              disabled={disabled}
+              aria-invalid={hasError}
+              aria-describedby={hasError ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
+              {...props}
+            />
+          )}
+          {rightElement && !multiline && <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">{rightElement}</div>}
         </div>
         {hasError && <p id={`${inputId}-error`} className="mt-1.5 text-sm text-red-600 flex items-center gap-1">{error}</p>}
         {helperText && !hasError && <p id={`${inputId}-helper`} className="mt-1.5 text-sm text-gray-500">{helperText}</p>}

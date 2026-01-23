@@ -3,10 +3,6 @@ import { EditorPane } from './EditorPane';
 import { PreviewPane } from './PreviewPane';
 import { CharacterCounter } from './CharacterCounter';
 import { AIAssistButton } from './AIAssistButton';
-import { SyntaxTemplateButton } from './SyntaxTemplateButton';
-import { CTAAlert } from './CTAAlert';
-import { AIReformat } from './AIReformat';
-import { AIRewrite } from '../ai-rewrite';
 
 export interface PostEditorProps {
   initialContent?: string;
@@ -15,27 +11,10 @@ export interface PostEditorProps {
 
 export function PostEditor({ initialContent = '', onChange }: PostEditorProps) {
   const [content, setContent] = useState(initialContent);
-  const [showCTAAlert, setShowCTAAlert] = useState(true);
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
     onChange?.(newContent);
-  };
-
-  const handleSelectTemplate = (template: string) => {
-    const newContent = content ? `${content}\n\n${template}` : template;
-    setContent(newContent);
-    onChange?.(newContent);
-  };
-
-  const handleReformat = (reformattedContent: string) => {
-    setContent(reformattedContent);
-    onChange?.(reformattedContent);
-  };
-
-  const handleRewrite = (rewrittenContent: string) => {
-    setContent(rewrittenContent);
-    onChange?.(rewrittenContent);
   };
 
   return (
@@ -45,13 +24,9 @@ export function PostEditor({ initialContent = '', onChange }: PostEditorProps) {
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-zinc-900">Create Post</h2>
           <div className="flex gap-2">
-            <SyntaxTemplateButton onSelectTemplate={handleSelectTemplate} />
-            <AIRewrite content={content} onRewrite={handleRewrite} />
-            <AIReformat content={content} onReformat={handleReformat} />
             <AIAssistButton />
           </div>
         </div>
-        {showCTAAlert && <CTAAlert content={content} onDismiss={() => setShowCTAAlert(false)} />}
         <EditorPane
           content={content}
           onChange={handleContentChange}

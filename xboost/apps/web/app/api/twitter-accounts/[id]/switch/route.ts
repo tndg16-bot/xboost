@@ -6,13 +6,14 @@ import { prisma } from '@/lib/prisma';
 const db = prisma as any;
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function POST(
   request: Request,
   { params }: RouteContext
 ) {
+  const { id } = await params;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -22,7 +23,7 @@ export async function POST(
   // Verify ownership
   const account = await db.twitterAccount.findFirst({
     where: {
-      id: params.id,
+      id,
       userId: session.user.id,
     },
   });
@@ -34,12 +35,12 @@ export async function POST(
   // Update user's active account
   await db.user.update({
     where: { id: session.user.id },
-    data: { activeAccountId: params.id },
+    data: { activeAccountId: id },
   });
 
   return NextResponse.json({
     success: true,
-    activeAccountId: params.id,
+    activeAccountId: id,
     account: {
       id: account.id,
       username: account.username,

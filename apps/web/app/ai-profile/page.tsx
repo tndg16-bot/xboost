@@ -1,4 +1,4 @@
-import { AIProfileCreator } from '@xboost/features/ai-profile-creation';
+import { AIProfileCreator } from '@xboost/ai-profile-creation';
 
 export default function AIProfileCreationPage() {
   return <AIProfileCreator />;

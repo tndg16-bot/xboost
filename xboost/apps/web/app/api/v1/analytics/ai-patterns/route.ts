@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
   // Calculate date range based on period
   const now = new Date();
-  let startDate = new Date();
+  const startDate = new Date();
 
   switch (period) {
     case '7d':
@@ -79,7 +79,14 @@ export async function POST(request: Request) {
       await import('@/services/ai-pattern-analyzer');
 
     // Prepare posts for analysis
-    const postsForAnalysis = posts.map((post) => ({
+    const postsForAnalysis = posts.map((post: {
+      content: string;
+      likes: number;
+      retweets: number;
+      replies: number;
+      quotes: number;
+      id: string;
+    }) => ({
       content: post.content,
       engagement:
         post.likes + post.retweets + post.replies + post.quotes,
@@ -179,7 +186,7 @@ export async function POST_SINGLE(request: Request) {
     const avgEngagement =
       historicalPosts.length > 0
         ? historicalPosts.reduce(
-            (sum, p) =>
+            (sum: number, p: { likes: number; retweets: number; replies: number; quotes: number }) =>
               sum + p.likes + p.retweets + p.replies + p.quotes,
             0
           ) / historicalPosts.length

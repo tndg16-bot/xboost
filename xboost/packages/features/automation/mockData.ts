@@ -22,7 +22,7 @@ export interface AutomationSettings {
   plugMessage: string;
 }
 
-export interface RepostHistory {
+export interface RepostHistoryItem {
   id: string;
   postId: string;
   repostedAt: string;
@@ -105,7 +105,7 @@ export const defaultSettings: AutomationSettings = {
 };
 
 // Mock repost history
-export const mockRepostHistory: RepostHistory[] = [
+export const mockRepostHistory: RepostHistoryItem[] = [
   {
     id: '1',
     postId: '2',

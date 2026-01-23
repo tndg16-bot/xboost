@@ -8,13 +8,14 @@ const db = prisma as any;
 type TwitterAccountRole = 'MAIN' | 'SUB' | 'NICHE';
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(
   request: Request,
   { params }: RouteContext
 ) {
+  const { id } = await params;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -23,7 +24,7 @@ export async function GET(
 
   const account = await db.twitterAccount.findFirst({
     where: {
-      id: params.id,
+      id,
       userId: session.user.id,
     },
     include: {
@@ -47,6 +48,7 @@ export async function PATCH(
   request: Request,
   { params }: RouteContext
 ) {
+  const { id } = await params;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -59,7 +61,7 @@ export async function PATCH(
   // Verify ownership
   const existing = await db.twitterAccount.findFirst({
     where: {
-      id: params.id,
+      id,
       userId: session.user.id,
     },
   });
@@ -69,7 +71,7 @@ export async function PATCH(
   }
 
   const account = await db.twitterAccount.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       ...(role !== undefined && { role: role as TwitterAccountRole }),
       ...(color !== undefined && { color }),
@@ -87,6 +89,7 @@ export async function DELETE(
   request: Request,
   { params }: RouteContext
 ) {
+  const { id } = await params;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -96,7 +99,7 @@ export async function DELETE(
   // Verify ownership
   const existing = await db.twitterAccount.findFirst({
     where: {
-      id: params.id,
+      id,
       userId: session.user.id,
     },
   });
@@ -106,7 +109,7 @@ export async function DELETE(
   }
 
   await db.twitterAccount.delete({
-    where: { id: params.id },
+    where: { id },
   });
 
   return NextResponse.json({ success: true });
