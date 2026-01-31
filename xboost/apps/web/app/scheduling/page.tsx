@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CalendarView, PostList, ScheduledPost, ReservationFormData, mockScheduledPosts } from '@xboost/scheduling';
+import { CalendarView, PostList, ScheduledPost, ReservationFormData } from '@xboost/scheduling';
+
+// 初期モックデータ
+const initialScheduledPosts: ScheduledPost[] = [];
 
 export default function SchedulingPage() {
-  const [posts, setPosts] = useState<ScheduledPost[]>(mockScheduledPosts);
+  const [posts, setPosts] = useState<ScheduledPost[]>(initialScheduledPosts);
   const [activeView, setActiveView] = useState<'calendar' | 'list'>('calendar');
 
   const handlePostCreate = (data: ReservationFormData) => {

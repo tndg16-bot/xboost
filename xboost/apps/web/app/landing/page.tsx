@@ -273,18 +273,18 @@ export default function LandingPage() {
               >
                 Discord
               </a>
-              <a
+              <Link
                 href="/"
                 className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
               >
                 利用規約
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/"
                 className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
               >
                 プライバシーポリシー
-              </a>
+              </Link>
             </div>
           </div>
         </div>

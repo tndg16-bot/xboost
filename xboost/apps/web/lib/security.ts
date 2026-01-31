@@ -11,7 +11,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
  */
 
 // CORS configuration
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+const _ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:3000', 'https://*.vercel.app'];
 

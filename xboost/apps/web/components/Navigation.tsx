@@ -8,7 +8,7 @@ export function Navigation() {
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleLinkClick = () => {
     setIsMobileMenuOpen(false);
   };
 

@@ -3,7 +3,7 @@ import Twitter from "next-auth/providers/twitter"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const authConfig = {
   adapter: PrismaAdapter(prisma),
   providers: [
     Twitter({
@@ -12,7 +12,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
+    async session({ session, user }: { session: any, user: any }) {
       if (session.user) {
         session.user.id = user.id
       }
@@ -23,4 +23,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/auth/signin",
     error: "/auth/error",
   },
-})
+}
+
+export const { handlers, signIn, signOut, auth } = NextAuth(authConfig)
+
+// Export authConfig for getServerSession
+export const authOptions = authConfig
