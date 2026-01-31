@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe-server';
+import { Stripe } from 'stripe';
 
 export async function GET() {
   try {
@@ -10,16 +11,22 @@ export async function GET() {
     });
 
     const plans = prices.data
-      .filter((price: any) => price.product.active)
-      .map((price: any) => ({
-        id: price.id,
-        name: price.product.name,
-        description: price.product.description,
-        price: price.unit_amount,
-        currency: price.currency,
-        interval: price.recurring?.interval,
-        features: price.product.features || [],
-      }));
+      .filter((price) => {
+        const product = price.product as Stripe.Product;
+        return product.active;
+      })
+      .map((price) => {
+        const product = price.product as Stripe.Product;
+        return {
+          id: price.id,
+          name: product.name,
+          description: product.description,
+          price: price.unit_amount,
+          currency: price.currency,
+          interval: price.recurring?.interval,
+          features: (product as unknown as { features?: string[] }).features || [],
+        };
+      });
 
     return NextResponse.json(plans);
   } catch (error) {

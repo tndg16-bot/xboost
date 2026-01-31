@@ -3,8 +3,7 @@ import { auth } from '@/lib/auth';
 import { stripe } from '@/lib/stripe-server';
 import { prisma } from '@/lib/prisma';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
+const db = prisma;
 
 export async function POST(_request: Request) {
   const session = await auth();
@@ -28,7 +27,7 @@ export async function POST(_request: Request) {
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
       return_url: `${process.env.NEXT_PUBLIC_APP_URL}/account`,
-    } as any);
+    });
 
     return NextResponse.json({ url: portalSession.url });
   } catch (error) {

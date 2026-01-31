@@ -125,15 +125,15 @@ export class XboostService {
     fromDate?: Date;
     toDate?: Date;
   }) {
-    const where: any = {
+    const where: Record<string, unknown> = {
       userId: params.userId,
       ...(params.status && { status: params.status }),
-      ...(params.fromDate || params.toDate && {
+      ...(params.fromDate || params.toDate ? {
         scheduledAt: {
           ...(params.fromDate && { gte: params.fromDate }),
           ...(params.toDate && { lte: params.toDate }),
         },
-      }),
+      } : {}),
     };
 
     return this.prisma.scheduledPost.findMany({

@@ -2,10 +2,19 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe-server';
 import { prisma } from '@/lib/prisma';
-import _crypto from 'crypto';
+import { Stripe } from 'stripe';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
+const db = prisma;
+
+type StripeSubscriptionWithTimestamps = Stripe.Subscription & {
+  current_period_start?: number;
+  current_period_end?: number;
+  cancel_at_period_end?: boolean;
+};
+
+type StripeInvoiceWithSubscription = Stripe.Invoice & {
+  subscription?: string | Stripe.Subscription;
+};
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -19,7 +28,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let event: any;
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -69,8 +78,15 @@ export async function POST(req: Request) {
   }
 }
 
-async function handleCheckoutCompleted(session: any) {
-  const subscriptionId = session.subscription as string;
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const subscriptionId = typeof session.subscription === 'string'
+    ? session.subscription
+    : session.subscription?.id;
+
+  if (!subscriptionId) {
+    throw new Error('Missing subscription in session');
+  }
+
   const userId = session.metadata?.userId;
 
   if (!userId) {
@@ -87,14 +103,14 @@ async function handleCheckoutCompleted(session: any) {
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
     expand: ['items.data.price'],
-  });
+  }) as StripeSubscriptionWithTimestamps;
 
-  const price = subscription.items.data[0].price as any;
+  const price = subscription.items.data[0].price;
 
   await syncSubscriptionToDb(subscription, userId, price);
 }
 
-async function handleSubscriptionCreated(subscription: any) {
+async function handleSubscriptionCreated(subscription: StripeSubscriptionWithTimestamps) {
   const userId = subscription.metadata?.userId;
 
   if (!userId) {
@@ -109,26 +125,33 @@ async function handleSubscriptionCreated(subscription: any) {
     return;
   }
 
-  const price = subscription.items.data[0].price as any;
+  const price = subscription.items.data[0].price;
   await syncSubscriptionToDb(subscription, userId, price);
 }
 
-async function handleSubscriptionUpdated(subscription: any) {
+async function handleSubscriptionUpdated(subscription: StripeSubscriptionWithTimestamps) {
   const planType = mapPriceIdToPlanType(subscription.items.data[0].price.id);
+
+  const currentPeriodStart = subscription.current_period_start
+    ? new Date(subscription.current_period_start * 1000)
+    : undefined;
+  const currentPeriodEnd = subscription.current_period_end
+    ? new Date(subscription.current_period_end * 1000)
+    : undefined;
 
   await db.subscription.update({
     where: { stripeSubscriptionId: subscription.id },
     data: {
-      status: subscription.status.toUpperCase(),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      status: subscription.status.toUpperCase() as 'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE',
+      cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+      ...(currentPeriodStart && { currentPeriodStart }),
+      ...(currentPeriodEnd && { currentPeriodEnd }),
       planType,
     },
   });
 }
 
-async function handleSubscriptionDeleted(subscription: any) {
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   await db.subscription.update({
     where: { stripeSubscriptionId: subscription.id },
     data: {
@@ -138,9 +161,18 @@ async function handleSubscriptionDeleted(subscription: any) {
   });
 }
 
-async function handleInvoicePaid(invoice: any) {
+async function handleInvoicePaid(invoice: StripeInvoiceWithSubscription) {
+  const subscriptionId = typeof invoice.subscription === 'string'
+    ? invoice.subscription
+    : invoice.subscription?.id;
+
+  if (!subscriptionId) {
+    console.error('Invoice missing subscription:', invoice.id);
+    return;
+  }
+
   await db.subscription.update({
-    where: { stripeSubscriptionId: invoice.subscription },
+    where: { stripeSubscriptionId: subscriptionId },
     data: {
       status: 'ACTIVE',
     },
@@ -149,40 +181,63 @@ async function handleInvoicePaid(invoice: any) {
   await db.invoice.create({
     data: {
       stripeInvoiceId: invoice.id,
-      userId: invoice.metadata?.userId,
+      userId: invoice.metadata?.userId ?? '',
       amount: invoice.amount_paid,
       currency: invoice.currency,
-      status: invoice.status,
-      hostedUrl: invoice.hosted_url,
-      pdfUrl: invoice.invoice_pdf,
+      status: invoice.status ?? 'unknown',
+      hostedUrl: invoice.hosted_invoice_url ?? null,
+      pdfUrl: invoice.invoice_pdf ?? null,
     },
   });
 }
 
-async function handleInvoiceFailed(invoice: any) {
+async function handleInvoiceFailed(invoice: StripeInvoiceWithSubscription) {
+  const subscriptionId = typeof invoice.subscription === 'string'
+    ? invoice.subscription
+    : invoice.subscription?.id;
+
+  if (!subscriptionId) {
+    console.error('Invoice missing subscription:', invoice.id);
+    return;
+  }
+
   await db.subscription.update({
-    where: { stripeSubscriptionId: invoice.subscription },
+    where: { stripeSubscriptionId: subscriptionId },
     data: {
       status: 'PAST_DUE',
     },
   });
 }
 
-async function syncSubscriptionToDb(subscription: any, userId: string, price: any) {
+async function syncSubscriptionToDb(
+  subscription: StripeSubscriptionWithTimestamps,
+  userId: string,
+  price: Stripe.Price
+) {
   const planType = mapPriceIdToPlanType(price.id);
   const { accountsLimit, automationEnabled } = getPlanLimits(planType);
+  const customerId = typeof subscription.customer === 'string'
+    ? subscription.customer
+    : subscription.customer.id;
+
+  const currentPeriodStart = subscription.current_period_start
+    ? new Date(subscription.current_period_start * 1000)
+    : new Date();
+  const currentPeriodEnd = subscription.current_period_end
+    ? new Date(subscription.current_period_end * 1000)
+    : new Date();
 
   await db.subscription.create({
     data: {
       userId,
       stripeSubscriptionId: subscription.id,
-      stripeCustomerId: subscription.customer,
+      stripeCustomerId: customerId,
       stripePriceId: price.id,
       planType,
-      status: subscription.status.toUpperCase(),
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      status: subscription.status.toUpperCase() as 'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE',
+      currentPeriodStart,
+      currentPeriodEnd,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
       accountsLimit,
       automationEnabled,
     },

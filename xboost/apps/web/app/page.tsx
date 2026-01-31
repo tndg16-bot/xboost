@@ -1,4 +1,10 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
+import { generateMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = generateMetadata({
+  description: "X（旧Twitter）運用に必要な全作業を一元管理できるSaaSツール。投稿作成、予約投稿、分析、自動化機能を搭載。",
+});
 
 export default function Home() {
   return (

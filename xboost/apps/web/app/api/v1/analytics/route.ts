@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { withApiAuthAndRateLimit, addRateLimitHeaders, checkRateLimit } from '@/lib/rate-limit';
 import { prisma } from '@/lib/prisma';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
+const db = prisma;
 
 export async function GET(request: Request) {
   const authResponse = await withApiAuthAndRateLimit(request);
@@ -100,13 +99,14 @@ export async function GET(request: Request) {
   const totalEngagements = (totalLikes._sum.likes || 0) +
                         (totalRetweets._sum.retweets || 0) +
                         (totalReplies._sum.replies || 0);
-  const engagementRate = totalImpressions._sum.impressions > 0
-    ? ((totalEngagements / totalImpressions._sum.impressions) * 100).toFixed(2)
+  const totalImpressionsValue = totalImpressions._sum.impressions || 0;
+  const engagementRate = totalImpressionsValue > 0
+    ? ((totalEngagements / totalImpressionsValue) * 100).toFixed(2)
     : '0.00';
 
   // Find top performing posts
   const topPosts = posts
-    .sort((a: any, b: any) => b.impressions - a.impressions)
+    .sort((a, b) => b.impressions - a.impressions)
     .slice(0, 5);
 
   const analytics = {

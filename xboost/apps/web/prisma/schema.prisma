@@ -425,3 +425,29 @@ model PlugHistory {
   @@index([originalPostId])
 }
 
+// Coupon codes for early access (Issue #38)
+model Coupon {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  description String?
+  used        Boolean   @default(false)
+  usedBy      String?   // User ID who used this coupon
+  user        User?     @relation(fields: [usedBy], references: [id])
+  maxUses     Int       @default(1)
+  usedCount   Int       @default(0)
+  validFrom   DateTime  @default(now())
+  validUntil  DateTime?
+  createdAt   DateTime  @default(now())
+  usedAt      DateTime?
+
+  // Discount settings
+  discountType     String   @default("PERCENTAGE") // PERCENTAGE or FIXED_AMOUNT
+  discountValue    Int      @default(100) // 100% off for early access
+  applicablePlans  String[] // List of plan types this coupon applies to
+
+  @@index([code])
+  @@index([used])
+  @@index([validFrom])
+  @@index([validUntil])
+}
+

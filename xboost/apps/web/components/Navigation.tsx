@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { useState } from 'react';
 import Link from 'next/link';
 
 export function Navigation() {
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <nav className="border-b-2 border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">

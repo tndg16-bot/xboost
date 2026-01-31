@@ -16,7 +16,7 @@ export interface AutoRetweetSettingsProps {
 }
 
 export function AutoRetweetSettingsPanel({ settings, onChange }: AutoRetweetSettingsProps) {
-  const handleChange = (key: keyof AutoRetweetSettings, value: any) => {
+  const handleChange = (key: keyof AutoRetweetSettings, value: AutoRetweetSettings[keyof AutoRetweetSettings]) => {
     onChange({ ...settings, [key]: value });
   };
 

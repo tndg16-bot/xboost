@@ -13,7 +13,7 @@ interface CalendarViewProps {
   onPostDelete?: (postId: string) => void;
 }
 
-const CalendarView: React.FC<CalendarViewProps> = ({
+export const CalendarView: React.FC<CalendarViewProps> = ({
   posts,
   onPostCreate,
   onPostUpdate,
@@ -231,5 +231,3 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     </div>
   );
 };
-
-export default CalendarView;

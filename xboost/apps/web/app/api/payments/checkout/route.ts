@@ -3,8 +3,7 @@ import { auth } from '@/lib/auth';
 import { stripe } from '@/lib/stripe-server';
 import { prisma } from '@/lib/prisma';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
+const db = prisma;
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -41,8 +40,8 @@ export async function POST(request: Request) {
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name,
+        email: user.email ?? undefined,
+        name: user.name ?? undefined,
         metadata: { userId: user.id },
       });
       customerId = customer.id;

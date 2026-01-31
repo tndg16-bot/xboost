@@ -12,7 +12,7 @@ interface PostListProps {
   onPostEdit?: (post: ScheduledPost) => void;
 }
 
-const PostList: React.FC<PostListProps> = ({
+export const PostList: React.FC<PostListProps> = ({
   posts,
   onPostClick,
   onPostDelete,
@@ -165,5 +165,3 @@ const PostList: React.FC<PostListProps> = ({
     </div>
   );
 };
-
-export default PostList;

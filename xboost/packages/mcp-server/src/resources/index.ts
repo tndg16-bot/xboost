@@ -9,7 +9,21 @@ export function registerResources(server: Server, xboostService: XboostService) 
     description: 'Post History - Complete historical data of tweets',
     uri: 'xboost://posts/{id}',
   }, async (request) => {
-    const { id } = request.params.arguments as any;
+    const args = request.params.arguments as { id?: string };
+    const { id } = args;
+
+    if (!id) {
+      return {
+        contents: [{
+          uri: 'xboost://posts/unknown',
+          mimeType: 'application/json',
+          text: JSON.stringify({
+            error: 'Missing id parameter',
+          }, null, 2),
+        }],
+        isError: true,
+      };
+    }
 
     try {
       const userId = process.env.XBOOST_USER_ID || 'demo-user';
@@ -44,13 +58,14 @@ export function registerResources(server: Server, xboostService: XboostService) 
           }, null, 2),
         }],
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
         contents: [{
           uri: `xboost://posts/${id}`,
           mimeType: 'application/json',
           text: JSON.stringify({
-            error: error.message,
+            error: errorMessage,
           }, null, 2),
         }],
         isError: true,
@@ -64,7 +79,8 @@ export function registerResources(server: Server, xboostService: XboostService) 
     description: 'Analytics - Aggregate performance metrics across all posts',
     uri: 'xboost://analytics/{period}',
   }, async (request) => {
-    const { period } = request.params.arguments as any;
+    const args = request.params.arguments as { period?: string };
+    const { period = '30d' } = args;
 
     try {
       const userId = process.env.XBOOST_USER_ID || 'demo-user';
@@ -73,7 +89,7 @@ export function registerResources(server: Server, xboostService: XboostService) 
       // Find top performing posts
       const topPosts = analytics.posts
         .slice()
-        .sort((a: any, b: any) => b.impressions - a.impressions)
+        .sort((a, b) => b.impressions - a.impressions)
         .slice(0, 10);
 
       return {
@@ -88,13 +104,14 @@ export function registerResources(server: Server, xboostService: XboostService) 
           }, null, 2),
         }],
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
         contents: [{
           uri: `xboost://analytics/${period}`,
           mimeType: 'application/json',
           text: JSON.stringify({
-            error: error.message,
+            error: errorMessage,
           }, null, 2),
         }],
         isError: true,

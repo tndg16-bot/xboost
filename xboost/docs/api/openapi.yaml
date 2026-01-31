@@ -1,0 +1,983 @@
+openapi: 3.0.0
+info:
+  title: Xboost API
+  description: |
+    Xboost REST API仕様書
+    
+    X（旧Twitter）運用に必要な全機能を提供するSaaSプラットフォームのAPIです。
+    
+    ## 認証
+    
+    API認証は以下の2種類があります：
+    
+    ### 1. セッションベース認証（Webアプリ用）
+    NextAuthを使用したセッションベース認証です。
+    Cookieにセッション情報が含まれます。
+    
+    ### 2. APIキー認証（外部連携用）
+    `X-API-Key` ヘッダーにAPIキーを設定してください。
+    
+    ```
+    X-API-Key: your_api_key_here
+    ```
+    
+    ## レート制限
+    
+    APIには以下のレート制限が適用されます：
+    
+    | プラン | 制限 |
+    |--------|------|
+    | Free | 100リクエスト/分 |
+    | Pro | 1,000リクエスト/分 |
+    | Enterprise | 10,000リクエスト/分 |
+    
+    レスポンスヘッダーで残りのリクエスト数を確認できます：
+    - `X-RateLimit-Limit`: 制限値
+    - `X-RateLimit-Remaining`: 残りリクエスト数
+    - `X-RateLimit-Reset`: リセット時刻
+    
+    ## エラーレスポンス
+    
+    全てのエラーは以下の形式で返却されます：
+    
+    ```json
+    {
+      "error": "エラーメッセージ",
+      "code": "ERROR_CODE",
+      "details": {} // オプションの詳細情報
+    }
+    ```
+    
+  version: 1.0.0
+  contact:
+    name: Xboost Support
+    email: support@xboost.now
+    url: https://www.xboost.now/support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://www.xboost.now/api
+    description: 本番環境
+  - url: http://localhost:3000/api
+    description: 開発環境
+
+paths:
+  # Authentication
+  /auth/[...nextauth]:
+    get:
+      summary: NextAuth.js エンドポイント
+      description: 認証関連のエンドポイント（サインイン、サインアウト、コールバック）
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: 成功
+        '302':
+          description: リダイレクト
+
+  # Posts
+  /posts:
+    get:
+      summary: 投稿一覧取得
+      description: ユーザーの投稿一覧を取得します
+      tags:
+        - Posts
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, SCHEDULED, PUBLISHED, FAILED, DELETED]
+          description: 投稿ステータスでフィルタリング
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: 取得件数
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: オフセット
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: 新規投稿作成
+      description: 新しい投稿を作成します
+      tags:
+        - Posts
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /posts/{id}:
+    get:
+      summary: 投稿詳細取得
+      description: 特定の投稿の詳細を取得します
+      tags:
+        - Posts
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 投稿ID
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: 投稿更新
+      description: 既存の投稿を更新します
+      tags:
+        - Posts
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+
+    delete:
+      summary: 投稿削除
+      description: 投稿を削除します
+      tags:
+        - Posts
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Post deleted successfully
+
+  # Scheduled Posts
+  /scheduled-posts:
+    get:
+      summary: 予約投稿一覧取得
+      description: 予約済みの投稿一覧を取得します
+      tags:
+        - Scheduled Posts
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduledPost'
+
+    post:
+      summary: 予約投稿作成
+      description: 新しい予約投稿を作成します
+      tags:
+        - Scheduled Posts
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScheduledPostRequest'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledPost'
+
+  /scheduled-posts/{id}:
+    put:
+      summary: 予約投稿更新
+      description: 予約投稿の内容や予約時刻を更新します
+      tags:
+        - Scheduled Posts
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateScheduledPostRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      summary: 予約投稿キャンセル
+      description: 予約投稿をキャンセルします
+      tags:
+        - Scheduled Posts
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: キャンセル成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Scheduled post cancelled
+
+  # Automation Rules
+  /automation/repost-rules:
+    get:
+      summary: 自動リポストルール一覧取得
+      description: 自動リポストのルール一覧を取得します
+      tags:
+        - Automation
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AutoRepostRule'
+
+    post:
+      summary: 自動リポストルール作成
+      description: 新しい自動リポストルールを作成します
+      tags:
+        - Automation
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAutoRepostRuleRequest'
+      responses:
+        '201':
+          description: 作成成功
+
+  /automation/repost-rules/{id}:
+    put:
+      summary: 自動リポストルール更新
+      tags:
+        - Automation
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAutoRepostRuleRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      summary: 自動リポストルール削除
+      tags:
+        - Automation
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 削除成功
+
+  /automation/delete-rules:
+    get:
+      summary: 自動削除ルール一覧取得
+      tags:
+        - Automation
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 成功
+
+    post:
+      summary: 自動削除ルール作成
+      tags:
+        - Automation
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deleteAfterDays:
+                  type: integer
+                  minimum: 1
+                  maximum: 365
+                enabled:
+                  type: boolean
+      responses:
+        '201':
+          description: 作成成功
+
+  /automation/plug-rules:
+    get:
+      summary: 自動プラグルール一覧取得
+      tags:
+        - Automation
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 成功
+
+    post:
+      summary: 自動プラグルール作成
+      tags:
+        - Automation
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plugTemplateId:
+                  type: string
+                enabled:
+                  type: boolean
+      responses:
+        '201':
+          description: 作成成功
+
+  # Multi-Account
+  /multi-account:
+    get:
+      summary: 接続アカウント一覧取得
+      description: 接続済みのTwitterアカウント一覧を取得します
+      tags:
+        - Multi-Account
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TwitterAccount'
+
+    post:
+      summary: Twitterアカウント追加
+      description: 新しいTwitterアカウントを連携します
+      tags:
+        - Multi-Account
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                role:
+                  type: string
+                  enum: [MAIN, SUB, NICHE]
+                color:
+                  type: string
+      responses:
+        '201':
+          description: 作成成功
+
+    put:
+      summary: アクティブアカウント切り替え
+      description: 現在のアクティブアカウントを切り替えます
+      tags:
+        - Multi-Account
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                twitterAccountId:
+                  type: string
+      responses:
+        '200':
+          description: 切り替え成功
+
+  /multi-account/{id}:
+    delete:
+      summary: Twitterアカウント連携解除
+      description: Twitterアカウントの連携を解除します
+      tags:
+        - Multi-Account
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 解除成功
+
+  # Payments
+  /payments/checkout:
+    post:
+      summary: Stripe Checkout Session作成
+      description: サブスクリプションのCheckout Sessionを作成します
+      tags:
+        - Payments
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                priceId:
+                  type: string
+                trial:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                  url:
+                    type: string
+
+  /payments/portal:
+    post:
+      summary: Customer Portal作成
+      description: Stripe Customer PortalのURLを生成します
+      tags:
+        - Payments
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+
+  /payments/subscription:
+    get:
+      summary: サブスクリプション情報取得
+      description: 現在のユーザーのサブスクリプション情報を取得します
+      tags:
+        - Payments
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+
+  # Webhooks
+  /webhooks/stripe:
+    post:
+      summary: Stripe Webhook
+      description: StripeからのWebhookイベントを処理します
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 成功
+        '400':
+          description: 署名検証失敗
+
+  # AI
+  /v1/ai/profile/analyze:
+    post:
+      summary: プロフィール分析
+      description: AIを使用してTwitterプロフィールを分析します
+      tags:
+        - AI
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                twitterHandle:
+                  type: string
+      responses:
+        '200':
+          description: 分析成功
+
+  /v1/ai/profile/generate:
+    post:
+      summary: プロフィール生成
+      description: AIを使用して最適なプロフィールを生成します
+      tags:
+        - AI
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                niche:
+                  type: string
+                keywords:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: 生成成功
+
+  # Analytics
+  /v1/analytics:
+    get:
+      summary: 分析データ取得
+      description: アカウントの分析データを取得します
+      tags:
+        - Analytics
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+
+  /v1/analytics/ai-patterns:
+    get:
+      summary: AIパターン分析
+      description: AIによる勝ちパターン分析結果を取得します
+      tags:
+        - Analytics
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 成功
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+      description: NextAuth.jsのセッションクッキー
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: APIキー認証
+
+  schemas:
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        twitterAccountId:
+          type: string
+          nullable: true
+        content:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, SCHEDULED, PUBLISHED, FAILED, DELETED]
+        mediaUrls:
+          type: array
+          items:
+            type: string
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+        publishedPostId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreatePostRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          maxLength: 280
+        twitterAccountId:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        mediaUrls:
+          type: array
+          items:
+            type: string
+
+    UpdatePostRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          maxLength: 280
+        scheduledAt:
+          type: string
+          format: date-time
+        mediaUrls:
+          type: array
+          items:
+            type: string
+
+    ScheduledPost:
+      allOf:
+        - $ref: '#/components/schemas/Post'
+
+    CreateScheduledPostRequest:
+      type: object
+      required:
+        - content
+        - scheduledAt
+      properties:
+        content:
+          type: string
+          maxLength: 280
+        scheduledAt:
+          type: string
+          format: date-time
+        twitterAccountId:
+          type: string
+        hashtags:
+          type: string
+
+    UpdateScheduledPostRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          maxLength: 280
+        scheduledAt:
+          type: string
+          format: date-time
+        hashtags:
+          type: string
+
+    AutoRepostRule:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        twitterAccountId:
+          type: string
+          nullable: true
+        thresholdType:
+          type: string
+          enum: [likes, retweets, impressions]
+        thresholdValue:
+          type: integer
+        delayMinutes:
+          type: integer
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateAutoRepostRuleRequest:
+      type: object
+      required:
+        - thresholdType
+        - thresholdValue
+        - delayMinutes
+      properties:
+        twitterAccountId:
+          type: string
+        thresholdType:
+          type: string
+          enum: [likes, retweets, impressions]
+        thresholdValue:
+          type: integer
+        delayMinutes:
+          type: integer
+        enabled:
+          type: boolean
+          default: true
+
+    UpdateAutoRepostRuleRequest:
+      type: object
+      properties:
+        thresholdType:
+          type: string
+          enum: [likes, retweets, impressions]
+        thresholdValue:
+          type: integer
+        delayMinutes:
+          type: integer
+        enabled:
+          type: boolean
+
+    TwitterAccount:
+      type: object
+      properties:
+        id:
+          type: string
+        twitterId:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+          nullable: true
+        profileImageUrl:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [MAIN, SUB, NICHE]
+        color:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        planType:
+          type: string
+          enum: [STARTER, PRO, TEAM]
+        status:
+          type: string
+          enum: [ACTIVE, PAST_DUE, CANCELED, UNPAID, TRIALING, INCOMPLETE]
+        currentPeriodStart:
+          type: string
+          format: date-time
+        currentPeriodEnd:
+          type: string
+          format: date-time
+        cancelAtPeriodEnd:
+          type: boolean
+        accountsLimit:
+          type: integer
+        automationEnabled:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: リクエストが不正
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: 不正なリクエストです
+            code: BAD_REQUEST
+
+    Unauthorized:
+      description: 認証が必要
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: ログインが必要です
+            code: UNAUTHORIZED
+
+    NotFound:
+      description: リソースが見つからない
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: リソースが見つかりません
+            code: NOT_FOUND
+
+    RateLimitExceeded:
+      description: レート制限超過
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: 再試行可能までの秒数
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: レート制限に達しました
+            code: RATE_LIMIT_EXCEEDED

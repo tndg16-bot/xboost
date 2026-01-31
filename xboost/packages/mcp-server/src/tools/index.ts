@@ -10,11 +10,20 @@ import { repostBuzzTool } from './repostBuzz.js';
 export function registerTools(server: Server, xboostService: XboostService) {
   // Register create_post tool
   server.setRequestHandler(createPostTool, async (request) => {
-    const { text, mediaUrls, replyTo } = request.params.arguments as any;
+    const args = request.params.arguments as {
+      text?: string;
+      mediaUrls?: string[];
+      replyTo?: string;
+    };
+    const { text, mediaUrls, replyTo } = args;
 
     try {
       // Get user ID from context (simplified for now)
       const userId = process.env.XBOOST_USER_ID || 'demo-user';
+
+      if (!text) {
+        throw new Error('Text is required');
+      }
 
       const post = await xboostService.createPost({
         userId,
@@ -33,13 +42,14 @@ export function registerTools(server: Server, xboostService: XboostService) {
           }, null, 2),
         }],
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
         content: [{
           type: 'text',
           text: JSON.stringify({
             success: false,
-            error: error.message,
+            error: errorMessage,
           }, null, 2),
         }],
         isError: true,
@@ -49,12 +59,27 @@ export function registerTools(server: Server, xboostService: XboostService) {
 
   // Register schedule_post tool
   server.setRequestHandler(schedulePostTool, async (request) => {
-    const { text, scheduledAt, mediaUrls, hashtags } = request.params.arguments as any;
+    const args = request.params.arguments as {
+      text?: string;
+      scheduledAt?: string;
+      mediaUrls?: string[];
+      hashtags?: string[];
+    };
+    const { text, scheduledAt, mediaUrls, hashtags } = args;
 
     try {
       const userId = process.env.XBOOST_USER_ID || 'demo-user';
+
+      if (!text) {
+        throw new Error('Text is required');
+      }
+
+      if (!scheduledAt) {
+        throw new Error('scheduledAt is required');
+      }
+
       const content = hashtags && hashtags.length > 0
-        ? `${text}\n\n${hashtags.map((h: string) => h.startsWith('#') ? h : `#${h}`).join(' ')}`
+        ? `${text}\n\n${hashtags.map((h) => h.startsWith('#') ? h : `#${h}`).join(' ')}`
         : text;
 
       const post = await xboostService.schedulePost({
@@ -74,13 +99,14 @@ export function registerTools(server: Server, xboostService: XboostService) {
           }, null, 2),
         }],
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
         content: [{
           type: 'text',
           text: JSON.stringify({
             success: false,
-            error: error.message,
+            error: errorMessage,
           }, null, 2),
         }],
         isError: true,
@@ -90,7 +116,11 @@ export function registerTools(server: Server, xboostService: XboostService) {
 
   // Register get_analytics tool
   server.setRequestHandler(getAnalyticsTool, async (request) => {
-    const { period, metrics } = request.params.arguments as any;
+    const args = request.params.arguments as {
+      period?: string;
+      metrics?: Array<'impressions' | 'likes' | 'retweets' | 'replies' | 'engagementRate'>;
+    };
+    const { period = '30d', metrics } = args;
 
     try {
       const userId = process.env.XBOOST_USER_ID || 'demo-user';
@@ -99,8 +129,8 @@ export function registerTools(server: Server, xboostService: XboostService) {
       // Filter by metrics if provided
       let filteredPosts = analytics.posts;
       if (metrics && metrics.length > 0) {
-        filteredPosts = analytics.posts.map((post: any) => {
-          const filtered: any = {
+        filteredPosts = analytics.posts.map((post) => {
+          const filtered: Record<string, unknown> = {
             id: post.id,
             content: post.content,
             publishedAt: post.publishedAt,
@@ -109,10 +139,11 @@ export function registerTools(server: Server, xboostService: XboostService) {
           if (metrics.includes('likes')) filtered.likes = post.likes;
           if (metrics.includes('retweets')) filtered.retweets = post.retweets;
           if (metrics.includes('replies')) filtered.replies = post.replies;
-          if (metrics.includes('engagementRate')) filtered.engagementRate =
-            post.impressions > 0
+          if (metrics.includes('engagementRate')) {
+            filtered.engagementRate = post.impressions > 0
               ? ((post.likes + post.retweets + post.replies) / post.impressions * 100).toFixed(2)
               : '0.00';
+          }
           return filtered;
         });
       }
@@ -126,13 +157,14 @@ export function registerTools(server: Server, xboostService: XboostService) {
           }, null, 2),
         }],
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
         content: [{
           type: 'text',
           text: JSON.stringify({
             success: false,
-            error: error.message,
+            error: errorMessage,
           }, null, 2),
         }],
         isError: true,
@@ -142,7 +174,13 @@ export function registerTools(server: Server, xboostService: XboostService) {
 
   // Register list_scheduled tool
   server.setRequestHandler(listScheduledTool, async (request) => {
-    const { status, limit, fromDate, toDate } = request.params.arguments as any;
+    const args = request.params.arguments as {
+      status?: 'SCHEDULED' | 'PUBLISHED' | 'FAILED';
+      limit?: number;
+      fromDate?: string;
+      toDate?: string;
+    };
+    const { status, limit, fromDate, toDate } = args;
 
     try {
       const userId = process.env.XBOOST_USER_ID || 'demo-user';
@@ -164,13 +202,14 @@ export function registerTools(server: Server, xboostService: XboostService) {
           }, null, 2),
         }],
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
         content: [{
           type: 'text',
           text: JSON.stringify({
             success: false,
-            error: error.message,
+            error: errorMessage,
           }, null, 2),
         }],
         isError: true,
@@ -180,10 +219,19 @@ export function registerTools(server: Server, xboostService: XboostService) {
 
   // Register repost_buzz tool
   server.setRequestHandler(repostBuzzTool, async (request) => {
-    const { postId, comment } = request.params.arguments as any;
+    const args = request.params.arguments as {
+      postId?: string;
+      comment?: string;
+    };
+    const { postId, comment } = args;
 
     try {
       const userId = process.env.XBOOST_USER_ID || 'demo-user';
+
+      if (!postId) {
+        throw new Error('postId is required');
+      }
+
       const repost = await xboostService.repostBuzz({
         userId,
         postId,
@@ -200,13 +248,14 @@ export function registerTools(server: Server, xboostService: XboostService) {
           }, null, 2),
         }],
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
         content: [{
           type: 'text',
           text: JSON.stringify({
             success: false,
-            error: error.message,
+            error: errorMessage,
           }, null, 2),
         }],
         isError: true,
