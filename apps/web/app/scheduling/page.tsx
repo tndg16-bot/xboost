@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CalendarView, PostList } from '@xboost/scheduling';
-import { ScheduledPost, ReservationFormData } from '@xboost/scheduling';
-import { mockScheduledPosts } from '@xboost/scheduling/mock-data';
+import { CalendarView, PostList, ScheduledPost, ReservationFormData } from '@xboost/scheduling';
 import { SkeletonList } from '@xboost/ui';
 
 export default function SchedulingPage() {
@@ -12,13 +10,22 @@ export default function SchedulingPage() {
   const [activeView, setActiveView] = useState<'calendar' | 'list'>('calendar');
 
   useEffect(() => {
-    // Simulate data fetching
-    const timer = setTimeout(() => {
-      setPosts(mockScheduledPosts);
-      setIsLoading(false);
-    }, 800);
+    // Fetch scheduled posts from API
+    async function fetchPosts() {
+      try {
+        const response = await fetch('/api/scheduled-posts');
+        if (response.ok) {
+          const data = await response.json();
+          setPosts(data);
+        }
+      } catch (error) {
+        console.error('Error fetching scheduled posts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-    return () => clearTimeout(timer);
+    fetchPosts();
   }, []);
 
   const handlePostCreate = (data: ReservationFormData) => {

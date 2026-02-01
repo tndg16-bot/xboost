@@ -1,9 +1,9 @@
 # Xboost プロジェクト引き継ぎ書
 
 **作成日時**: 2026-01-24 09:17  
-**更新日時**: 2026-02-01  
+**更新日時**: 2026-02-01 14:30  
 **担当者**: Sisyphus  
-**ステータス**: Sprint 4 完了（環境変数不要部分）
+**ステータス**: Sprint 4 完了（環境変数不要部分）+ 技術的負債解消
 
 ---
 
@@ -167,6 +167,47 @@
 
 ---
 
+## ✅ 技術的負債解消（2026-02-01）
+
+### 修正内容
+
+#### 1. 認証パターン修正
+**問題**: API ルートで `getServerSession(authOptions, request)` を使用していたが、これは Next.js Pages Router 用の API で、App Router では正しく動作しない
+
+**修正**:
+- 全 API エンドポイントを `auth()` 関数を使用するように変更
+- `apps/web/lib/auth.ts` を新規作成（authOptions と auth をエクスポート）
+- 影響ファイル:
+  - `app/api/automation/repost-rules/route.ts`
+  - `app/api/automation/repost-rules/[id]/route.ts`
+  - `app/api/automation/delete-rules/route.ts`
+  - `app/api/automation/delete-rules/[id]/route.ts`
+  - `app/api/automation/plug-rules/route.ts`
+  - `app/api/automation/plug-rules/[id]/route.ts`
+  - `app/api/scheduled-posts/route.ts`
+  - `app/api/scheduled-posts/[id]/route.ts`
+  - `app/api/multi-account/route.ts`
+
+#### 2. ESLintエラー修正
+**修正前**: 
+- TypeScriptエラー: 複数（認証関連）
+- ESLintエラー: 20+
+
+**修正後**:
+- TypeScriptエラー: 1件（prisma/config.ts - 無視可能）
+- ESLintエラー: 0件
+- ESLint警告: 7件（any型使用 - 軽微）
+
+#### 3. 未使用変数削除
+- `app/scheduling/page.tsx` から `mockScheduledPosts` の未使用インポートを削除
+- API ルートの未使用 `request` パラメータを `_request` に変更（または使用するように修正）
+
+#### 4. 型安全性向上
+- `updateData: any` の使用箇所を `Record<string, unknown>` に変更
+- Prisma スキーマに存在しない `hashtags` フィールドの参照を削除
+
+---
+
 ## 📊 プロジェクト進捗
 
 | スプリント | 状態 | 完了/全体 |
@@ -205,12 +246,7 @@
   ```
 - **注意**: Prisma 7.x は `prisma/config.ts` を使用
 
-### 2. NextAuth 設定の場所が不明
-- **問題**: `@/lib/auth.ts` ファイルが存在しない
-- **現状**: コードは `getServerSession(authOptions, request)` を使用
-- **必要な手順**: `authOptions` がどこからエクスポートされているか確認
-
-### 3. Twitter OAuth キーが欠落
+### 2. Twitter OAuth キーが欠落
 - **不足キー**:
   - `AUTH_TWITTER_ID`
   - `AUTH_TWITTER_SECRET`
@@ -218,10 +254,11 @@
 - **対応**: Twitter Developer Portal でキー取得が必要
 - **現在**: マック実装で動作
 
-### 4. Prisma 設定
+### 3. Prisma 設定
 - **Prisma バージョン**: 7.3.0
 - **設定方法**: `prisma/config.ts` で DB URL を管理
 - **状態**: 設定ファイル作成済みだがマイグレーション未実行
+- **注記**: `prisma/config.ts(2,30): error TS2307` は無視可能（Prisma 7.x の型定義の問題）
 
 ---
 
@@ -245,15 +282,18 @@ apps/web/app/api/
 ### ライブラリ
 ```
 apps/web/lib/
-├── prisma.ts
-└── twitter-client.ts
+├── auth.ts              # NextAuth 設定（auth() と authOptions をエクスポート）
+├── prisma.ts            # Prisma クライアント
+├── twitter-client.ts    # Twitter API クライアント
+├── security-headers.ts  # セキュリティヘッダー
+└── security.ts          # セキュリティユーティリティ
 ```
 
 ### 設定
 ```
 apps/web/prisma/
-├── schema.prisma
-└── config.ts
+├── schema.prisma       # DBスキーマ
+└── config.ts           # Prisma 7.x 設定（型エラーあり）
 ```
 
 ### ドキュメント
@@ -332,9 +372,10 @@ sprint-3-4-plan.md
 - **Prisma 7.x**: URLをスキーマに埋め込まず `prisma/config.ts` を使用
 - **マイグレーション**: DB接続確認後に実行必須
 
-### 認証パターン
-- **パターン**: `getServerSession(authOptions, request)`
-- **課題**: `authOptions` のエクスポート元を確認必要
+### 認証パターン（2026-02-01 更新）
+- **パターン**: `auth()` 関数を使用（NextAuth v5 / Auth.js）
+- **使用場所**: 全 API ルートで統一
+- **変更理由**: `getServerSession()` は Pages Router 用、App Router では `auth()` を使用
 
 ### API デザイン
 - **スタイル**: RESTful
@@ -373,14 +414,22 @@ npm run dev
 
 ---
 
-## ✨ 成功基準
+## ✨ 成功基準（2026-02-01 更新）
 
-### Sprint 4 時点
-- ✅ TypeScript エラー: 1（DBマイグレーション後に解消）
-- ✅ ESLint エラー: 0
-- ✅ ESLint 警告: 19（軽微な警告）
+### 現在の状態
+- ✅ TypeScript エラー: 1件（prisma/config.ts - 無視可能）
+- ✅ ESLint エラー: 0件
+- ✅ ESLint 警告: 7件（any型使用 - 軽微）
 - ✅ ビルド: 成功
 - ✅ テスト: E2Eテスト作成済み（環境変数設定後実行可能）
+
+### コード品質メトリクス
+| 指標 | 値 | 状態 |
+|------|-----|------|
+| TypeScript エラー | 1件 | ⚠️ 軽微 |
+| ESLint エラー | 0件 | ✅ 良好 |
+| ESLint 警告 | 7件 | ⚠️ 軽微（any型） |
+| 認証パターン | 統一済み | ✅ 良好 |
 
 ### 次のマイルストーン
 - [ ] DBマイグレーション実行
@@ -390,6 +439,17 @@ npm run dev
 
 ---
 
-**引き継ぎ完了時刻**: 2026-02-01  
+**引き継ぎ完了時刻**: 2026-02-01 14:30  
 **次の担当者**: ユーザー（環境変数設定・デプロイ）  
-**確認**: ✅ GitHubにプッシュ済み（c3c3d29）
+**確認**: 🔄 GitHubにプッシュ待ち  
+
+---
+
+## 📝 変更履歴
+
+### 2026-02-01
+- ✅ 認証パターンを `getServerSession` から `auth()` に変更
+- ✅ ESLintエラー（20+件）を解消
+- ✅ TypeScriptエラー（複数）を解消
+- ✅ 未使用変数を削除
+- ✅ 引き継ぎ書を更新

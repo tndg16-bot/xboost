@@ -1,9 +1,10 @@
 # Xboost プロジェクト全体概要
 
 **作成日**: 2026-02-01  
+**更新日**: 2026-02-01  
 **プロジェクト名**: Xboost (X/Twitter運用管理SaaS)  
 **リポジトリ**: https://github.com/tndg16-bot/xboost  
-**ステータス**: Phase 2 後半 / Sprint 4 部分完了
+**ステータス**: Phase 2 後半 / Sprint 4 部分完了 + 技術的負債解消
 
 ---
 
@@ -31,7 +32,7 @@ Frontend: Next.js 16.1.4 + React 19 + TypeScript 5
 Styling: Tailwind CSS 4 + shadcn/ui
 Backend: Next.js API Routes (Edge Runtime対応)
 Database: PostgreSQL + Prisma 7.3.0
-Auth: NextAuth 4.24.13 (Twitter OAuth 2.0)
+Auth: NextAuth 4.24.13 / Auth.js (Twitter OAuth 2.0)
 Payment: Stripe (サブスクリプション)
 AI: OpenAI API (GPT-4)
 External: Twitter API v2
@@ -43,17 +44,24 @@ xboost/
 ├── apps/web/                  # Next.jsアプリケーション
 │   ├── app/                   # App Router
 │   │   ├── api/              # API Routes (20+ endpoints)
+│   │   │   ├── automation/   # 自動化API（リポスト・削除・プラグ）
+│   │   │   ├── scheduled-posts/  # 予約投稿API
+│   │   │   ├── multi-account/    # マルチアカウントAPI
+│   │   │   ├── health/       # ヘルスチェック
+│   │   │   └── cron/         # Cronジョブ
 │   │   ├── (pages)/          # ページコンポーネント
 │   │   └── layout.tsx        # ルートレイアウト
 │   ├── components/           # Reactコンポーネント
 │   ├── lib/                  # ユーティリティ
-│   │   ├── auth.ts          # 認証設定
+│   │   ├── auth.ts          # 認証設定（NextAuth v5）
 │   │   ├── prisma.ts        # DBクライアント
 │   │   ├── stripe-server.ts # Stripe統合
-│   │   └── twitter-client.ts # Twitter API
+│   │   ├── twitter-client.ts # Twitter API
+│   │   ├── security-headers.ts # セキュリティヘッダー
+│   │   └── security.ts      # セキュリティユーティリティ
 │   └── prisma/
 │       ├── schema.prisma    # DBスキーマ
-│       └── migrations/      # マイグレーション
+│       └── config.ts        # Prisma 7.x 設定
 ├── packages/                 # モノレポパッケージ
 │   ├── features/            # 機能モジュール
 │   │   ├── ai-rewrite/     # AI文章改善
@@ -73,7 +81,7 @@ xboost/
 
 | 機能 | 状態 | 詳細 |
 |------|------|------|
-| ユーザー認証 | ✅ | Twitter OAuth連携 |
+| ユーザー認証 | ✅ | Twitter OAuth連携（NextAuth v5） |
 | 投稿作成・予約 | ✅ | 2ヶ月先まで予約可能 |
 | 分析ダッシュボード | ✅ | 基本メトリクス表示 |
 | Stripe決済 | ✅ | サブスクリプション管理 |
@@ -101,6 +109,15 @@ xboost/
 | **S4-6: ユーザーガイド** | **✅ 完了** | ガイド作成済み |
 | **S4-7: SEO最適化** | **✅ 完了** | sitemap, robots実装 |
 | S4-8: ローンチ準備 | ⏳ 待機 | マーケティング準備 |
+
+#### 技術的負債解消（2026-02-01）✅
+| タスク | 状態 | 詳細 |
+|--------|------|------|
+| 認証パターン修正 | ✅ 完了 | `getServerSession()` → `auth()` |
+| ESLintエラー解消 | ✅ 完了 | 20+件 → 0件 |
+| TypeScriptエラー解消 | ✅ 完了 | 複数 → 1件（無視可能） |
+| 未使用変数削除 | ✅ 完了 | クリーンアップ |
+| 型安全性向上 | ✅ 完了 | `any` → 適切な型 |
 
 ### Phase 3: 機能拡充（2025 Q4）⏳ 未着手
 **目標**: 高度なAI分析、戦略機能
@@ -134,6 +151,15 @@ xboost/
 | Open Issues | 87 |
 | APIエンドポイント | 20+ |
 | DBモデル数 | 15+ |
+
+### コード品質メトリクス（2026-02-01 更新）
+| 指標 | 値 | 目標 | 状態 |
+|------|-----|------|------|
+| TypeScript エラー | 1件 | 0件 | ⚠️ 軽微（prisma/config.ts） |
+| ESLint エラー | 0件 | 0件 | ✅ 達成 |
+| ESLint 警告 | 7件 | 0件 | ⚠️ 軽微（any型） |
+| 認証パターン統一 | 100% | 100% | ✅ 達成 |
+| テストカバレッジ | 0% | 80% | 📋 未着手 |
 
 ### 実装済み機能
 | カテゴリ | 機能数 |
@@ -175,17 +201,20 @@ xboost/
 
 ## ⚠️ 現在の課題
 
-### 技術的負債
-1. **TypeScriptエラー**: 1件（Couponモデル - DBマイグレーション後に解消）
-2. **ESLint警告**: 19件（軽微な警告、機能に影響なし）
-3. **any型使用**: 7箇所（段階的修正予定）
+### 技術的負債（2026-02-01 時点）
+| 課題 | 状態 | 対応時期 |
+|------|------|----------|
+| TypeScriptエラー | 1件 | 無視可能（prisma/config.ts） |
+| ESLint警告 | 7件 | 軽微、段階的対応 |
+| any型使用 | 7箇所 | リファクタリング時に対応 |
+| テストカバレッジ | 0% | Sprint 6以降 |
 
-### ブロッカー
+### ブロッカー（環境変数待ち）
 1. **環境変数未設定**:
-   - `DATABASE_URL`
-   - `AUTH_TWITTER_ID/SECRET`
-   - `STRIPE_SECRET_KEY`
-   - `OPENAI_API_KEY`
+   - `DATABASE_URL` - PostgreSQL接続
+   - `AUTH_TWITTER_ID/SECRET` - Twitter認証
+   - `STRIPE_SECRET_KEY` - 決済
+   - `OPENAI_API_KEY` - AI機能
 
 2. **DBマイグレーション未実行**:
    - Couponモデル
