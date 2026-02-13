@@ -22,7 +22,7 @@ interface HealthStatus {
   environment: string;
 }
 
-let startTime = Date.now();
+const startTime = Date.now();
 
 export async function GET() {
   const checks: HealthStatus['checks'] = {

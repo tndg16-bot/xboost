@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 /**
  * Error Boundary Component
@@ -67,12 +68,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
               >
                 ページを再読み込み
               </button>
-              <a
+              <Link
                 href="/"
                 className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors inline-block"
               >
                 トップページへ
-              </a>
+              </Link>
             </div>
             
             <div className="mt-8 text-sm text-gray-500">

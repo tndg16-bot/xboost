@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * Sprint 4: Security Hardening (Issue #132 - S4-4)
  */
 
-export function securityHeadersMiddleware(request: NextRequest): NextResponse {
+export function securityHeadersMiddleware(): NextResponse {
   const response = NextResponse.next();
 
   // Content Security Policy
@@ -108,7 +108,7 @@ export function securityMiddleware(request: NextRequest): NextResponse {
   }
 
   // Apply security headers
-  const response = securityHeadersMiddleware(request);
+  const response = securityHeadersMiddleware();
   
   // Merge CORS headers if present
   if (corsResponse) {

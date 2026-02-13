@@ -97,7 +97,7 @@ export function ImagePasteUploader({
       setFiles(updatedFiles);
       onFilesChange?.(updatedFiles);
     },
-    [files, maxFiles, onFilesChange, maxImageSize, maxVideoSize]
+    [files, maxFiles, onFilesChange, maxImageSize, maxVideoSize, validateFile]
   );
 
   const removeFile = useCallback(
