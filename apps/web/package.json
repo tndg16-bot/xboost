@@ -29,7 +29,6 @@
     "@xboost/scheduling": "file:../packages/features/scheduling",
     "@xboost/ui": "file:../packages/ui",
     "lucide-react": "^0.564.0",
-    "next": "16.1.4",
     "next-auth": "^4.24.13",
     "react": "19.2.3",
     "react-dom": "19.2.3",
