@@ -10,9 +10,6 @@ jobs:
   ci:
     name: Lint, Type Check & Build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./apps/web
 
     steps:
       - name: Checkout
@@ -28,10 +25,10 @@ jobs:
         run: npm install
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint -w @xboost/web
 
       - name: Type Check
-        run: npm run typecheck
+        run: npm run typecheck -w @xboost/web
 
       - name: Build
-        run: npm run build
+        run: npm run build -w @xboost/web
