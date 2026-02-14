@@ -4,15 +4,7 @@ import prettier from 'eslint-config-prettier';
 
 const eslintConfig = defineConfig([
   // Next.js configuration
-  ...nextVitals.map(config => ({
-    ...config,
-    languageOptions: {
-      ...config.languageOptions,
-      // Remove the problematic parser that references next/dist/compiled/babel/eslint-parser
-      parser: undefined,
-      parserOptions: undefined,
-    },
-  })),
+  ...nextVitals,
   // Prettier integration
   prettier,
   // Override default ignores
@@ -25,7 +17,6 @@ const eslintConfig = defineConfig([
 
       // General rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      // TypeScript-specific rules removed to avoid plugin issues
     },
   },
 ]);
