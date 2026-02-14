@@ -15,8 +15,11 @@
     "typecheck": "npm run typecheck --workspaces"
   },
   "devDependencies": {
-    "typescript": "^5",
     "eslint": "^9",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "next": "^16.1.4"
   }
 }
