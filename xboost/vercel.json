@@ -56,6 +56,10 @@
     {
       "path": "/api/cron/analytics-sync",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/automation-engine",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
