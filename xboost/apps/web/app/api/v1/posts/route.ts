@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withApiAuthAndRateLimit, addRateLimitHeaders, checkRateLimit } from '@/lib/rate-limit';
 import { prisma } from '@/lib/prisma';
+import { publishPost } from '@/services/twitter-publisher';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
@@ -95,6 +96,41 @@ export async function POST(request: Request) {
       },
     },
   });
+
+  // If status is PUBLISHED, immediately publish to Twitter
+  if (status === 'PUBLISHED' && twitterAccountId) {
+    const publishResult = await publishPost(post.id, twitterAccountId);
+
+    if (!publishResult.success) {
+      const updatedPost = await db.post.findUnique({ where: { id: post.id } });
+      const response = NextResponse.json(
+        {
+          post: updatedPost,
+          warning: `Post saved but failed to publish to X: ${publishResult.error}`,
+        },
+        { status: 201 }
+      );
+      return addRateLimitHeaders(response, limitInfo);
+    }
+
+    // Re-fetch post with updated twitterPostId
+    const publishedPost = await db.post.findUnique({
+      where: { id: post.id },
+      include: {
+        twitterAccount: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            profileImageUrl: true,
+            role: true,
+          },
+        },
+      },
+    });
+    const response = NextResponse.json({ post: publishedPost }, { status: 201 });
+    return addRateLimitHeaders(response, limitInfo);
+  }
 
   const response = NextResponse.json({ post }, { status: 201 });
   return addRateLimitHeaders(response, limitInfo);
